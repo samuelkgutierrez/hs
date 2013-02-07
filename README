@@ -1,1 +1,30 @@
 Haskell Notes for a Compete Beginner -- Me
+
+- Compilers
+The Haskell Platform
+ghc
+ghci <== interactive shell
+Common Extension .hs
+
+Load Haskell
+:l <foo>
+
+Functions can't begin with uppercase letters
+
+Lists are a homogeneous data structure.
+
+++ List Concatenation
+
+[1, 2, 3] ++ [4]
+    ^
+    |
+   Slow to add at end of large lists
+
+: 'cons' to add to front of list is fast
+
+If you want to get an element out of a list by index, use !!. The indices start
+at 0.
+
+*Main> let foo = [0..12]
+*Main> foo
+[0,1,2,3,4,5,6,7,8,9,10,11,12]
