@@ -55,9 +55,9 @@ rewrite (s:sx) productionRules =
 --------------------------------------------------------------------------------
 lSystem :: [String] -> [String] -> [(String, String)] -> Int -> IO()
 lSystem v w p ni
-    | ni <= 0 = putStrLn "done!" 
+    | ni <= 0 = putStrLn "done!"
     | otherwise = do
-      putStrLn (unlines v)
+      putStrLn (concat v)
       lSystem v' w p (ni - 1)
       where v' = rewrite v p
 
