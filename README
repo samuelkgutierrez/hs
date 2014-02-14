@@ -1,4 +1,5 @@
 Haskell Notes for a Compete Beginner -- Me
+Most of the content from these notes comes from: http://learnyouahaskell.com
 
 - Compilers
 The Haskell Platform
@@ -6,10 +7,12 @@ ghc
 ghci <== interactive shell
 Common Extension .hs
 
-Load Haskell
+- Load Haskell
 :l <foo>
 
-Functions can't begin with uppercase letters
+Haskell has a static type system.
+
+Functions can't begin with uppercase letters.
 
 Lists are a homogeneous data structure.
 
@@ -28,3 +31,31 @@ at 0.
 *Main> let foo = [0..12]
 *Main> foo
 [0,1,2,3,4,5,6,7,8,9,10,11,12]
+
+-- Single line comment
+
+:t Expr Type introspection
+
+:: Read: "has type of"
+
+Int Type: More efficient. Integer can represent large numbers
+
+ghci> :t head
+head :: [a] -> a
+'a' here is a 'type variable'. That is, 'a' can be any type.
+
+Everything before the => symbol is called a class constraint
+
+"fromIntegral :: (Num b, Integral a) => a -> b" is a type declaration
+
+There's also a thing called as patterns. Those are a handy way of breaking
+something up according to a pattern and binding it to names whilst still
+keeping a reference to the whole thing. You do that by putting a name and an @
+in front of a pattern. For instance, the pattern xs@(x:y:ys). This pattern will
+match exactly the same thing as x:y:ys but you can easily get the whole list
+via xs instead of repeating yourself by typing out x:y:ys in the function body
+again. Here's a quick and dirty example:
+
+capital :: String -> String
+capital "" = "Empty string, whoops!"
+capital all@(x:xs) = "The first letter of " ++ all ++ " is " ++ [x]
