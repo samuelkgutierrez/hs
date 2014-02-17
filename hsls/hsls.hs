@@ -40,14 +40,28 @@ algaeSystem = (v, w, p)
           p = [("A", "AB"), ("B", "A")] -- A --> AB, B --> A
 
 --------------------------------------------------------------------------------
+-- Cantor dust setup
+--------------------------------------------------------------------------------
+cantorDustSystem :: ([String], [String], [(String, String)])
+cantorDustSystem = (v, w, p)
+    where v = ["A", "B"]
+          w = ["A"]
+          p = [("A", "ABA"), ("B", "BBB")] -- A --> AB, B --> A
+
+--------------------------------------------------------------------------------
 -- rewrite
+-- this function does all the heavy lifting. it takes the current state string
+-- and applies the given production rules to it. the result is an updated state
+-- string.
 --------------------------------------------------------------------------------
 rewrite :: [String] -> [(String, String)] -> [String]
 rewrite [] productionRules = []
 rewrite (s:sx) productionRules =
     let s' = snd (head (filter ((==s).fst) productionRules))
-        foo = [[c] | c <- s']
-        state' = foo ++ rewrite sx productionRules
+        -- at this point we have a String, so convert it to a list of single
+        -- character Strings that represent the production
+        sl = [[c] | c <- s']
+        state' = sl ++ rewrite sx productionRules
     in state'
 
 --------------------------------------------------------------------------------
