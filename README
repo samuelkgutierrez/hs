@@ -59,3 +59,27 @@ again. Here's a quick and dirty example:
 capital :: String -> String
 capital "" = "Empty string, whoops!"
 capital all@(x:xs) = "The first letter of " ++ all ++ " is " ++ [x]
+
+----------------------------- Tue Mar  4 11:03:30 MST 2014 (Haskell Class Day 0)
+Mailing List: lyah14
+Named after Haskell Curry, American logician
+Haskell 1.0: 1990
+Current major implementation: Glasgow Haskell Compiler
+    - Written in Haskell, some C runtime stuff...
+
+Pure by default: no side effects
+    - no destructive updates
+    - see referential transparency
+
+Lazy - technically, it's not strict
+
+Awesome type system
+
+Read: Monads are like burritos...
+
+:i Type gives awesome info
+:t (:)
+
+See: Bryan O'Sullivan's code for great examples.
+
+(:) 1 []
