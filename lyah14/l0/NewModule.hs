@@ -32,4 +32,12 @@ list2 = [atuple, btuple]
 list3 = 4 : list 
 list4 = list ++ [4]
 
-sinpi = sin pie
+sinpi = sq (sin pie)
+
+sq x = x * x
+
+ssin x = sin x
+
+z = ssin pi
+
+zz = map sq list
