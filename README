@@ -83,3 +83,30 @@ Read: Monads are like burritos...
 See: Bryan O'Sullivan's code for great examples.
 
 (:) 1 []
+
+Function composition: (.) :: (b -> c) -> (a -> b) -> (a -> c) ~ f(g(x))
+
+!  Tue Mar 25 11:03:40 MDT 2014
+
+:t id (Identity function) a -> a
+
+Hindley Milner type system
+
+@see Planet Haskell
+
+NICE for Hacking: Use undefined. Like: ontable = undefined
+
+Type variables: lower-case variables in: map :: (a -> b) -> [a] -> [b]
+
+@see Recursive data definition.
+
+Parametric polymorphism ~ C++ templates: really no overhead.
+
+SPECIALIZE pragma
+
+* -> *
+
+Folds and zip on trees! For awesome tree stuff, look at the standard library.
+
+@see Haskell "Maybe" Used for computations that could fail.
+@see Haskell "Just"
