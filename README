@@ -110,3 +110,104 @@ Folds and zip on trees! For awesome tree stuff, look at the standard library.
 
 @see Haskell "Maybe" Used for computations that could fail.
 @see Haskell "Just"
+
+-- Tue Apr  8 11:05:24 MDT 2014
+@ - as expression to name things
+$ - associativity
+deriving (Show, Eq, Read) ~ 7 classes supported out of the box
+pragma {#- LANGUAGE GeneralizedNewtypeDeriving #-}
+@see functor pattern in OOP
+dropping formal arguments is idiomatic
+
+ys' = map (2*) xs <-- do it this way
+
+-- flip can bail you out if you're stuck with the wrong arg order
+flip
+
+foldl' = strict accumulator - use this one
+
+` operator deals with infix stuff
+
+-- Tue Apr 15 11:23:53 MDT 2014
+zipWith (\x y -> x * y) xs ys
+BETTER!
+zipWith (*) xs ys
+zipWith (\x y -> if x > y then x else y) xs ys
+
+Know: Pointfree Form
+
+Think: when writing functions, make it as easy as possible for users to curry
+the functions. Often, this means that placing the least-changing argument first
+(from the left).
+
+Free to make your own infix operators.
+
+Type constructors
+
+:i - info
+:kind
+
+Prelude> :t fmap
+fmap :: Functor f => (a -> b) -> f a -> f b
+
+Know about type class Functor
+
+[] Int -> [] Int aka [Int] -> [Int]
+
+ghci:
+:m + <mod name> adds module
+:m - <mod name> rms module
+
+-- Tue Apr 22 11:04:43 MDT 2014
+
+data MyList = ANode a (MyList a)
+            | Nil
+
+data Tree a = Node a (Tree a) (Tree a) | Empty
+
+-- a is a type variable
+
+:kind
+:type
+:info Num
+
+Language Pragmas: cmdline pass with -X
+
+Learn about Lifting
+
+:t it -- last thing
+
+Something about Haskell can give you the ASTs and stuff. Talk to Tim.
+
+() - "Unit" - Only interesting because of its side effects
+
+>>= - "Bind"
+
+unsafePerformIO
+
+-- Tue Apr 29 11:10:37 MDT 2014
+Explicit importation
+import FizzBuzz (fizzbuzz)
+
+import qualified FizzBuzz as FB
+
+readFile
+
+Monads must have:
+return: a -> m a
+bind: m a -> (a m b) -> m b
+fail:
+
+know "do" notation
+
+-- Creating Project
+
+-- Tue May 27 11:58:32 MDT 2014
+Let's Parse some Stuff with Attoparsec
+Example in RWH Chapter 16
+
+type Parser = Parser Text
+
+? -XOverloadedStrings
+
+<$> : Lives in Control.Applicative : 'fMap'
