@@ -211,3 +211,10 @@ type Parser = Parser Text
 ? -XOverloadedStrings
 
 <$> : Lives in Control.Applicative : 'fMap'
+
+-- Tue Jun 24 11:06:34 MDT 2014
+.ghci and module search paths
+
+{-# LANGUAGE BangPatterns #-}
+
+
