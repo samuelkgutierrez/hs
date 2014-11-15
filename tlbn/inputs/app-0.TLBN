@@ -1,0 +1,1 @@
+app (true, if (iszero (succ(0))) then false else true fi)

@@ -1,162 +1,182 @@
 module Parser (parseTLBN) where
 
--- Adapted from TAPL simplebool parser code.
--- Parses a file contain expressions of the TLBN language.  
+-- Adapted from TAPL fullsimple parser code.
+-- Parses a file contain expressions of the TLBN language.
 
+import TLBN
+import qualified Text.ParserCombinators.Parsec.Token as P
 import Text.ParserCombinators.Parsec
-import qualified Control.Monad as CMonad
+import Text.ParserCombinators.Parsec.Language
+import Control.Monad
 import Text.Parsec.Prim (ParsecT)
 import Data.Functor.Identity (Identity)
-import TLBN
+import Data.Char (isUpper)
 
--- What a comment looks like. Does not allow nested comments
-comment :: ParsecT String u Identity ()
-comment = do
-    _ <- string "/*"
-    _ <- many (noneOf "*" <|> starNotCommentEnd)
-    _ <- commentEnd
-    return ()
+fullSimpleDef :: GenLanguageDef String u Identity
+fullSimpleDef = LanguageDef
+                { commentStart    = "/*"
+                , commentEnd      = "*/"
+                , commentLine     = ""
+                , nestedComments  = False
+                , identStart      = letter
+                , identLetter     = letter <|> digit
+                , opStart         = fail "no operators"
+                , opLetter        = fail "no operators"
+                , reservedOpNames = []
+                , caseSensitive   = True
+                , reservedNames   = ["true",
+                                     "false",
+                                     "if", "then", "else", "fi",
+                                     "Bool",
+                                     "Nat",
+                                     "succ",
+                                     "pred",
+                                     "iszero",
+                                     "app",
+                                     "abs"
+                                    ]
+                }
 
--- We need to use "try", because we want this to fail when
--- it encounters the end of the comment, and give back the
--- last star.  "commentEnd" below handles the case of extra
--- stars before the final "*/"
-starNotCommentEnd :: GenParser Char st Char
-starNotCommentEnd = try (many1 (char '*') >> noneOf "/")
+lexer :: P.GenTokenParser String u Identity
+lexer = P.makeTokenParser fullSimpleDef
 
-commentEnd :: ParsecT String u Identity Char
-commentEnd = many1 (char '*') >> char '/'
+parens :: ParsecT String u Identity a -> ParsecT String u Identity a
+parens = P.parens lexer
 
-separator :: ParsecT String () Identity ()
-separator = CMonad.void space <|> 
-            comment
+identifier :: ParsecT String u Identity String
+identifier = P.identifier lexer
 
-separators :: ParsecT String () Identity [()]
-separators = many separator
-             
-separators1 :: ParsecT String () Identity [()]
-separators1 = many1 separator
+reserved :: String -> ParsecT String u Identity ()
+reserved = P.reserved lexer
 
--- --------------------
--- Zero-arg terms
-parseTrue :: Parser Term
-parseTrue = string "true" >> return TrmTru
+symbol :: String -> ParsecT String u Identity String
+symbol = P.symbol lexer
 
-parseFalse :: Parser Term
-parseFalse = string "false" >> return TrmFls
+whiteSpace :: ParsecT String u Identity ()
+whiteSpace = P.whiteSpace lexer
 
-parseNat :: ParsecT String u Identity Term
-parseNat = CMonad.liftM (numToSucc . read) $ many1 digit
+comma :: ParsecT String u Identity String
+comma = P.comma lexer
 
-parseIdent :: Parser Term
-parseIdent = CMonad.liftM (stringToVar . read) $ many1 letter
+colon :: ParsecT String u Identity String
+colon = P.colon lexer
 
-parseNatType :: ParsecT String u Identity Type
-parseNatType = string "Nat" >> return TyNat
+natural :: ParsecT String u Identity Integer
+natural = P.natural lexer
 
-parseBoolType :: ParsecT String u Identity Type
-parseBoolType = string "Bool" >> return TyBool
+-- Type Parsing
+parseTypeBool :: ParsecT String u Identity Type
+parseTypeBool = reserved "Bool" >> return TyBool
+
+parseTypeNat :: ParsecT String u Identity Type
+parseTypeNat = reserved "Nat" >> return TyNat
+
+parseTypeArr :: ParsecT String u Identity Type
+parseTypeArr = parseTypeBool   <|>
+               parseTypeNat    <|>
+               parens parseType
 
 parseType :: ParsecT String u Identity Type
-parseType = parseNatType <|>
-            parseBoolType
+parseType = parseTypeArr `chainr1` (symbol "->" >> return TyArr)
 
-numToSucc :: Integer -> Term
-numToSucc 0 = TrmZero
-numToSucc n = TrmSucc $ numToSucc (n - 1)
+-- Zero argument term parsing
+parseTrue :: ParsecT String u Identity Term
+parseTrue  = reserved "true"  >> return TrmTru
 
-stringToVar :: String -> Term
-stringToVar = TrmIdent
+parseFalse :: ParsecT String u Identity Term
+parseFalse = reserved "false" >> return TrmFls
 
--- --------------------
--- One-arg terms
-parseOneArgTerm :: String -> (Term -> b) -> ParsecT String () Identity b
-parseOneArgTerm keyword constructor = 
-    string keyword >> separators1 >> CMonad.liftM constructor parseTerm
+parseNat :: ParsecT String u Identity Term
+parseNat = liftM numToSucc natural
+    where numToSucc 0 = TrmZero
+          numToSucc n = TrmSucc $ numToSucc (n - 1)
 
-parseSucc :: ParsecT String () Identity Term
-parseSucc = parseOneArgTerm "succ" TrmSucc
+parseOneArg :: String -> (Term -> b) -> ParsecT String u Identity b
+parseOneArg keyword constructor = reserved keyword >>
+                                  liftM constructor parseTerm
 
-parsePred :: ParsecT String () Identity Term
-parsePred = parseOneArgTerm "pred" TrmPred
+parseSucc :: ParsecT String u Identity Term
+parseSucc = parseOneArg "succ" TrmSucc
 
-parseIsZero :: ParsecT String () Identity Term
-parseIsZero = parseOneArgTerm "iszero" TrmIsZero
+parsePred :: ParsecT String u Identity Term
+parsePred = parseOneArg "pred" TrmPred
 
-surroundedBy :: ParsecT String () Identity t ->
-                ParsecT String () Identity t1 ->
-                ParsecT String () Identity b ->
-                ParsecT String () Identity b
-surroundedBy open close parser = do
-    _ <- open
-    _ <- separators
-    output <- parser
-    _ <- separators
-    _ <- close
-    return output
+parseIsZero :: ParsecT String u Identity Term
+parseIsZero = parseOneArg "iszero" TrmIsZero
 
--- Responsible for parsing if ifPred then conseq else alt fi statements.
-parseIf :: ParsecT String () Identity Term
+parseIf :: ParsecT String u Identity Term
 parseIf = do
-    _ <- string "if"
-    _ <- separators1
-    ifPred <- parseTerm
-    _ <- separators1
-    _ <- string "then"
-    _ <- separators1
-    conseq <- parseTerm
-    _ <- separators1
-    _ <- string "else"
-    _ <- separators1
-    alt <- parseTerm
-    _ <- separators1
-    _ <- string "fi"
-    return $ TrmIf ifPred conseq alt
+    reserved "if"
+    t1 <- parseTerm
+    reserved "then"
+    t2 <- parseTerm
+    reserved "else"
+    t3 <- parseTerm
+    reserved "fi"
+    return (TrmIf t1 t2 t3)
 
--- Parses: abs lpar identifier colon Type fullstop Term rpar
-parseAbs :: ParsecT String () Identity Term
-parseAbs = do
-    _ <- string "abs"
-    _ <- separators1
-    _ <- string "("
-    var <- parseIdent
-    _ <- separators1
-    _ <- string ":"
-    _ <- separators1
+parseVar :: ParsecT String u Identity Term
+parseVar = do
+    varName <- identifier
+    if isUpper $ head varName
+      then fail "variables must start with a lowercase letter"
+      else return (TrmVar varName)
+
+parseVarBind :: ParsecT String u Identity Term
+parseVarBind = do
+    var <- identifier
+    _ <- colon
     ty <- parseType
-    _ <- separators1
-    _ <- string "."
-    _ <- separators1
-    body <- parseTerm
-    _ <- string ")"
-    return (TrmAbs var ty body)
+    let binding = VarBind ty
+    return (TrmBind var binding)
 
--- Parses a term in our language.
-parseTerm :: ParsecT String () Identity Term
+parseAbs :: ParsecT String u Identity Term
+parseAbs = do
+    reserved "abs"
+    _ <- symbol "("
+    (TrmBind varStr (VarBind typ)) <- parseVarBind
+    _ <- symbol "."
+    body <- parseTerm
+    _ <- symbol ")"
+    return (TrmAbs varStr typ body)
+
+-- Implements app parsing of the form app (t1, t2).
+parseApp :: ParsecT String u Identity Term
+parseApp = do
+    reserved "app"
+    _ <- symbol "("
+    trmFn <- parseTerm
+    _ <- comma
+    trmArg <- parseTerm
+    _ <- symbol ")"
+    return (TrmApp trmFn trmArg)
+
+-- Puts all our parsers together.
+parseTerm :: ParsecT String u Identity Term
 parseTerm = parseTrue <|>
             parseFalse <|>
             parseSucc <|>
             parsePred <|>
-            parseIsZero <|>
-            try parseIf <|>
+            try parseIsZero <|>
+            parseIf <|>
             parseNat <|>
+            parseApp <|>
             parseAbs <|>
-            parseIdent <|>
-            surroundedBy (char '(') (char ')') parseTerm
+            parseVar <|>
+            parens parseTerm
 
--- What the end of a term look like.
-termEnd :: Parser ()
-termEnd = separators >> eof
+-- Top-level function that parseTLBN interacts with.
+parseTerms :: ParsecT String u Identity Term
+parseTerms = do
+    whiteSpace -- lexer handles whitespace everywhere except here
+    ts <- parseTerm
+    eof
+    return ts
 
--- The TLBN parser top level.
-tlbnParser :: Parser [Term]
-tlbnParser = separators >>
-              endBy1 parseTerm termEnd
-
--- Top-level routine that is responsible for parsing the provided text. Terms
--- will be retured or an error will be raised if the parse fails.
-parseTLBN :: Monad m => String -> m [Term]
-parseTLBN src =
-    case parse tlbnParser "TLBN Parser" src of
-      Left err -> error (show err)
+-- Top-level routine that is responsible for parsing the provided source text.
+-- Terms will be returned or an error will be raised if the parse fails.
+parseTLBN :: Monad m => String -> m Term
+parseTLBN srcStr =
+    case parse parseTerms "TLBN Parser" srcStr of
+      Left err   -> error (show err)
       Right term -> return term

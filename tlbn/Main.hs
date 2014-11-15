@@ -2,6 +2,7 @@ module Main (main) where
 
 import qualified BaseUtils
 import qualified Parser
+import qualified Evaluator
 
 -- main
 main :: IO ()
@@ -22,11 +23,14 @@ main = do
     putStrLn ":: starting parse..."
     term <- Parser.parseTLBN fileContents
     -- If we are here, then the text was successfully parsed.
-    putStrLn ":: done with parse..."
+    putStrLn ":: done with parse"
     -- Show what we got.
     putStrLn "-- Term: --"
     print term
     putStrLn "-- Type: --"
     putStrLn "-- Normal Form: --"
+    -- If we are here, then everything has type checked, so print the normal
+    -- form of the given term by evaluating it.
+    print $ Evaluator.eval term
     -- All done.
     return ()

@@ -33,7 +33,7 @@ GHC_FLAGS := -j2 -Wall
 #all: $(TARGET) $(TEX)
 all: $(TARGET)
 
-$(TARGET): clean
+$(TARGET):
 	ghc --make $(GHC_FLAGS) $@ -o $(APP_NAME)
 
 %.tex: %.lhs
@@ -46,9 +46,11 @@ clean:
 	rm -f *.o *.hi $(APP_NAME) $(TEX) *.ptb
 	#latexmk -f -C $(TARGETS)
 
-test:
+test: $(TARGET)
 	@ \
+	echo -e "# Test Log\n" > test-results.log; \
 	for testInput in `ls -1 ./inputs/*.TLBN | sort -n` ; do \
-		./$(APP_NAME) $$testInput; \
-		echo; \
-	done
+		./$(APP_NAME) $$testInput >> test-results.log; \
+		echo >> test-results.log; \
+	done; \
+	echo "Test Log Written to: test-results.log";
