@@ -17,11 +17,11 @@ data Term = TrmVar String -- varName
 -- Implements how we show Terms.
 instance Show Term where
     -- Shows true
-    show TrmTru      = "True"
+    show TrmTru = "True"
     -- Shows false
-    show TrmFls      = "False"
+    show TrmFls = "False"
     -- Shows 0
-    show TrmZero     = "0"
+    show TrmZero = "0"
     -- Shows succ
     show (TrmSucc t) | isNumericValue t = show $ returnNumericValue (TrmSucc t)
                      | otherwise = "(succ " ++ show t ++ ")"
@@ -39,7 +39,7 @@ instance Show Term where
         "abs (" ++ name ++ ":" ++ show typ ++ " . " ++ show body ++ ")"
     -- Shows function application.
     show (TrmApp tFn tArg) =
-        "app (" ++ show tFn ++ " , " ++ show tArg ++ ")"
+        "app (" ++ show tFn ++ " ,\n     " ++ show tArg ++ ")"
     -- Catch-all
     show _ = error "Don't know how to show given Term :-("
 

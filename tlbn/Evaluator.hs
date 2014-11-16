@@ -8,6 +8,25 @@ import TLBN
 import qualified Control.Monad as CMonad (liftM)
 import qualified Data.Maybe as DMaybe (fromMaybe)
 
+doVarSub :: Term -> Term -> Term
+doVarSub body repl = case body of
+    TrmTru        -> TrmTru
+    TrmFls        -> TrmFls
+    TrmZero       -> TrmZero
+    (TrmVar {})   -> repl
+    (TrmSucc t)   -> (TrmSucc (again t repl))
+    (TrmPred t)   -> (TrmPred (again t repl))
+    (TrmIsZero t) -> (TrmIsZero (again t repl))
+    (TrmIf c t e) -> (TrmIf (again c repl) (again t repl) (again e repl))
+    _             -> error "Cannot perform variable substitution."
+    where again = doVarSub
+
+-- Implements variable substitution within a lambda abstraction. Given an abs
+-- and a term, returns a new term with
+varSub :: Term -> Term -> Term
+varSub (TrmAbs _ _ body) repl = doVarSub body repl
+varSub _ _ = error "Invalid top-level call to varSub."
+
 -- Implements a one step evaluation relation.
 eval1 :: Term -> Maybe Term
 -- Succ
@@ -26,9 +45,9 @@ eval1 (TrmIf TrmFls _ el) = Just el
 eval1 (TrmIf cond thn el) = CMonad.liftM (\x -> TrmIf x thn el) (eval1 cond)
 -- Application
 -- Application of abstraction
-eval1 (TrmApp t1@(TrmAbs _ _ body) t2)
+eval1 (TrmApp t1@(TrmAbs {}) t2)
     -- if t2 is a value, then just replace its value inside of t1's body
-    | isValue t2 = undefined
+    | isValue t2 = Just (varSub t1 t2)
     -- t2 is not a value, so eval1 t2
     | otherwise = CMonad.liftM (TrmApp t1) (eval1 t2)
 -- More general Application
