@@ -72,8 +72,8 @@ parseTypeNat :: ParsecT String u Identity Type
 parseTypeNat = reserved "Nat" >> return TyNat
 
 parseTypeArr :: ParsecT String u Identity Type
-parseTypeArr = parseTypeBool   <|>
-               parseTypeNat    <|>
+parseTypeArr = parseTypeBool <|>
+               parseTypeNat <|>
                parens parseType
 
 parseType :: ParsecT String u Identity Type

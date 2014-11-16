@@ -1,4 +1,5 @@
 module Evaluator (eval) where
+
 -- An implementation of an evaluator based on the small-step evaluation relation
 -- for the language of booleans \texttt{Bool} and natural numbers \texttt{Nat}
 -- that closely as possible follows the behavior presented in \texttt{TAPL}.
@@ -23,8 +24,22 @@ eval1 (TrmIsZero t) = CMonad.liftM TrmIsZero (eval1 t)
 eval1 (TrmIf TrmTru thn _) = Just thn
 eval1 (TrmIf TrmFls _ el) = Just el
 eval1 (TrmIf cond thn el) = CMonad.liftM (\x -> TrmIf x thn el) (eval1 cond)
--- Not in our language
-eval1 _ = Nothing -- Signifies that the provided term is not in our language.
+-- Application
+-- Application of abstraction
+eval1 (TrmApp t1@(TrmAbs _ _ body) t2)
+    -- if t2 is a value, then just replace its value inside of t1's body
+    | isValue t2 = undefined
+    -- t2 is not a value, so eval1 t2
+    | otherwise = CMonad.liftM (TrmApp t1) (eval1 t2)
+-- More general Application
+eval1 (TrmApp t1 t2) = term' where
+    term'
+     -- if t1 is a value, then eval1 t2
+     | isValue t1 = CMonad.liftM (TrmApp t1) (eval1 t2)
+     -- t1 isn't a value, so eval1 t1
+     | otherwise  = CMonad.liftM (TrmApp t2) (eval1 t1)
+-- Signifies that the provided term is not in our language or is a normal form.
+eval1 _ = Nothing
 
 -- Implements a multi-step relation that iterates \texttt{eval1} as many times as
 -- possible.  If t' == t then we know that we are either done or that we are stuck,

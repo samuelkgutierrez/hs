@@ -60,12 +60,31 @@ returnNumericValue TrmZero = 0
 returnNumericValue (TrmSucc t) = returnNumericValue t + 1
 returnNumericValue _ = error "Invalid Term in returnNumericValue"
 
+-- Retruns whether or not a given term is a boolean value.
+isBooleanValue :: Term -> Bool
+isBooleanValue trm = case trm of
+    TrmTru     -> True
+    TrmFls     -> True
+    _          -> False
+
+-- Retruns whether or not a given term is a numerical value.
 isNumericValue :: Term -> Bool
 isNumericValue trm = case trm of
     TrmZero     -> True
     (TrmSucc t) -> isNumericValue t
     _           -> False
 
+-- Retruns whether or not a given term is an abstraction value.
+isAbstractionValue :: Term -> Bool
+isAbstractionValue trm = case trm of
+    TrmAbs {}   -> True
+    _           -> False
+
+-- Retruns whether or not a given term is a value in our language.
+isValue :: Term -> Bool
+isValue t = isNumericValue t || isBooleanValue t || isAbstractionValue t
+
+-- Bindings
 data Binding = NameBind
              | TyVarBind
              | VarBind Type
