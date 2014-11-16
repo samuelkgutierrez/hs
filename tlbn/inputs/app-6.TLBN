@@ -1,0 +1,3 @@
+app (abs (x:Nat . if iszero(x) then succ(x) else succ(succ(0)) fi),
+     app (abs (x:Bool . if x then 0 else pred(succ(0)) fi), true)
+)

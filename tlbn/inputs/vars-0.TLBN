@@ -1,0 +1,5 @@
+app (abs (x:Nat . x),
+     app (abs (x:Bool . if x then 0 else succ 0 fi),
+          false
+     )
+)

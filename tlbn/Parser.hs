@@ -4,6 +4,7 @@ module Parser (parseTLBN) where
 -- Parses a file contain expressions of the TLBN language.
 
 import TLBN
+import Context
 import qualified Text.ParserCombinators.Parsec.Token as P
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Language
@@ -91,20 +92,20 @@ parseNat = liftM numToSucc natural
     where numToSucc 0 = TrmZero
           numToSucc n = TrmSucc $ numToSucc (n - 1)
 
-parseOneArg :: String -> (Term -> b) -> ParsecT String u Identity b
+parseOneArg :: String -> (Term -> b) -> ParsecT String Context Identity b
 parseOneArg keyword constructor = reserved keyword >>
                                   liftM constructor parseTerm
 
-parseSucc :: ParsecT String u Identity Term
+parseSucc :: ParsecT String Context Identity Term
 parseSucc = parseOneArg "succ" TrmSucc
 
-parsePred :: ParsecT String u Identity Term
+parsePred :: ParsecT String Context Identity Term
 parsePred = parseOneArg "pred" TrmPred
 
-parseIsZero :: ParsecT String u Identity Term
+parseIsZero :: ParsecT String Context Identity Term
 parseIsZero = parseOneArg "iszero" TrmIsZero
 
-parseIf :: ParsecT String u Identity Term
+parseIf :: ParsecT String Context Identity Term
 parseIf = do
     reserved "if"
     t1 <- parseTerm
@@ -122,26 +123,29 @@ parseVar = do
       then fail "variables must start with a lowercase letter"
       else return (TrmVar varName)
 
-parseVarBind :: ParsecT String u Identity Term
+parseVarBind :: ParsecT String Context Identity Term
 parseVarBind = do
     var <- identifier
     _ <- colon
     ty <- parseType
     let binding = VarBind ty
+    updateState $ appendBinding var binding
     return (TrmBind var binding)
 
-parseAbs :: ParsecT String u Identity Term
+parseAbs :: ParsecT String Context Identity Term
 parseAbs = do
     reserved "abs"
     _ <- symbol "("
+    context <- getState
     (TrmBind varStr (VarBind typ)) <- parseVarBind
     _ <- symbol "."
     body <- parseTerm
     _ <- symbol ")"
+    setState context
     return (TrmAbs varStr typ body)
 
 -- Implements app parsing of the form app (t1, t2).
-parseApp :: ParsecT String u Identity Term
+parseApp :: ParsecT String Context Identity Term
 parseApp = do
     reserved "app"
     _ <- symbol "("
@@ -152,7 +156,7 @@ parseApp = do
     return (TrmApp trmFn trmArg)
 
 -- Puts all our parsers together.
-parseTerm :: ParsecT String u Identity Term
+parseTerm :: ParsecT String Context Identity Term
 parseTerm = parseTrue <|>
             parseFalse <|>
             parseSucc <|>
@@ -166,7 +170,7 @@ parseTerm = parseTrue <|>
             parens parseTerm
 
 -- Top-level function that parseTLBN interacts with.
-parseTerms :: ParsecT String u Identity Term
+parseTerms :: ParsecT String Context Identity Term
 parseTerms = do
     whiteSpace -- lexer handles whitespace everywhere except here
     ts <- parseTerm
@@ -174,9 +178,10 @@ parseTerms = do
     return ts
 
 -- Top-level routine that is responsible for parsing the provided source text.
--- Terms will be returned or an error will be raised if the parse fails.
+-- Terms will be returned or an error will be raised if the parse fails. Setup
+-- new top-level context when running parser.
 parseTLBN :: Monad m => String -> m Term
 parseTLBN srcStr =
-    case parse parseTerms "TLBN Parser" srcStr of
+    case runParser parseTerms newContext "TLBN Parser" srcStr of
       Left err   -> error (show err)
       Right term -> return term

@@ -1,0 +1,1 @@
+if true then succ(0) else pred(succ(0)) fi

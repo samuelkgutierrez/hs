@@ -8,16 +8,18 @@ import TLBN
 import qualified Control.Monad as CMonad (liftM)
 import qualified Data.Maybe as DMaybe (fromMaybe)
 
+-- Implements variable substitution for terms in our language. Helper routine
+-- called by varSub.
 doVarSub :: Term -> Term -> Term
 doVarSub body repl = case body of
     TrmTru        -> TrmTru
     TrmFls        -> TrmFls
     TrmZero       -> TrmZero
     (TrmVar {})   -> repl
-    (TrmSucc t)   -> (TrmSucc (again t repl))
-    (TrmPred t)   -> (TrmPred (again t repl))
-    (TrmIsZero t) -> (TrmIsZero (again t repl))
-    (TrmIf c t e) -> (TrmIf (again c repl) (again t repl) (again e repl))
+    (TrmSucc t)   -> TrmSucc (again t repl)
+    (TrmPred t)   -> TrmPred (again t repl)
+    (TrmIsZero t) -> TrmIsZero (again t repl)
+    (TrmIf c t e) -> TrmIf (again c repl) (again t repl) (again e repl)
     _             -> error "Cannot perform variable substitution."
     where again = doVarSub
 

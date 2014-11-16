@@ -50,7 +50,7 @@ test: $(TARGET)
 	@ \
 	echo -e "# Test Log\n" > test-results.log; \
 	for testInput in `ls -1 ./inputs/*.TLBN | sort -n` ; do \
-		./$(APP_NAME) $$testInput >> test-results.log; \
+		./$(APP_NAME) $$testInput >> test-results.log 2>&1; \
 		echo >> test-results.log; \
 	done; \
 	echo "Test Log Written to: test-results.log";
