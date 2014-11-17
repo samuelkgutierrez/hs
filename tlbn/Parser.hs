@@ -3,6 +3,7 @@ module Parser (parseTLBN) where
 -- Adapted from TAPL fullsimple parser code.
 -- Parses a file contain expressions of the TLBN language.
 
+import TLBNError
 import TLBN
 import Context
 import qualified Text.ParserCombinators.Parsec.Token as P
@@ -188,9 +189,8 @@ parseTerms = do
 -- Top-level routine that is responsible for parsing the provided source text.
 -- Terms will be returned or an error will be raised if the parse fails. Setup
 -- new top-level context when running parser.
-parseTLBN :: Monad m => String -> m Term
+parseTLBN :: String -> ThrowsError Term
 parseTLBN srcStr =
     case runParser parseTerms newContext "TLBN Parser" srcStr of
       Left err   -> error (show err)
       Right term -> return term
-

@@ -1,5 +1,6 @@
-module Typing (typeof) where
+module Typing (termType) where
 
+import TLBNError
 import TLBN
 import Context
 
@@ -7,48 +8,36 @@ import Control.Monad
 import Control.Monad.Error
 import Control.Monad.State
 
--- Typing
--- Convenience routine for printing out type error messages.
-typeErrorComplain :: (Show a1, Show a) => a -> a1 -> t
 typeErrorComplain exTy gotTy =
-    error ("Type error detected. Expected '"
+    throwError $ Default ("Type error detected. Expected '"
                 ++ show exTy ++ "', but got '"
                 ++ show gotTy ++ "'.")
 
-retTypeFromBinding binding = case binding of
-    (VarBind ty) -> ty
-    _ -> error "Cannot return type from this binding."
-
-checkType :: Term -> Type -> Type -> Type
+checkType :: Term -> Type -> b -> ErrorT TLBNError (State Context) b
 checkType t exTy ouTy = do
-    let typeOfT = typeof t
+    typeOfT <- typeof t
     if exTy == typeOfT
-    then ouTy
+    then return ouTy
     else typeErrorComplain exTy typeOfT
 
--- Implements the code responsible for calculating the type of a given term.
--- Typing for If statements.
-typeof (TrmIf c t e) = do
-    let cTy = typeof c
-    if TyBool /= cTy
-    then typeErrorComplain TyBool cTy
-    else do
-         -- Make sure both branches are of the same type.
-         let tyT = typeof t
-         let tyE = checkType e tyT tyT
-         -- If so, then just use the type of the else branch.
-         tyE
+typeOfBinding :: Binding -> ContextThrowsError Type
+typeOfBinding (VarBind ty) = return ty
+typeOfBinding _ = throwError $ Default "Cannot determine type of binding"
 
--- Typing for variables
-
--- Typing for abstractions.
-
--- The rest.
+-- Variable typing
+typeof :: Term -> ContextThrowsError Type
+typeof (TrmVar idx _) = do
+    ctx <- get
+    b <- liftThrows $ bindingOf idx ctx
+    typeOfBinding b
+---- The rest.
 typeof trm = case trm of
-    TrmFls        -> TyBool
-    TrmTru        -> TyBool
-    TrmZero       -> TyNat
-    (TrmSucc t)   -> checkType t TyNat TyNat
-    (TrmPred t)   -> checkType t TyNat TyNat
+    TrmTru  -> return TyBool
+    TrmFls  -> return TyBool
+    TrmZero -> return TyNat
+    (TrmSucc t) -> checkType t TyNat TyNat
+    (TrmPred t) -> checkType t TyNat TyNat
     (TrmIsZero t) -> checkType t TyNat TyBool
-    t@_ -> error ("Cannot determ term type of the following:\n" ++ show t)
+
+termType :: Term -> ThrowsError Type
+termType  = runContextThrows . typeof

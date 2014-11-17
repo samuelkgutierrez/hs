@@ -56,6 +56,11 @@ instance Show Type where
     show TyNat  = "Nat"
     show (TyArr t1 t2) = "(" ++ show t1 ++ " -> " ++ show t2 ++ ")"
 
+-- Bindings
+data Binding = TyVarBind
+             | VarBind Type
+               deriving (Show, Eq)
+
 returnNumericValue :: Term -> Integer
 returnNumericValue TrmZero = 0
 returnNumericValue (TrmSucc t) = returnNumericValue t + 1
@@ -84,10 +89,3 @@ isAbstractionValue trm = case trm of
 -- Retruns whether or not a given term is a value in our language.
 isValue :: Term -> Bool
 isValue t = isNumericValue t || isBooleanValue t || isAbstractionValue t
-
--- Bindings
-data Binding = TyVarBind
-             | VarBind Type
-               deriving (Show, Eq)
-
-
