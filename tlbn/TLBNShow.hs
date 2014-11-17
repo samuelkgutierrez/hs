@@ -30,14 +30,28 @@ showTerm (TrmVar i n) = tell $ show (TrmVar i n)
 showTerm (TrmAbs n t b) = tell $ show (TrmAbs n t b)
 showTerm (TrmApp f a) = tell $ show (TrmApp f a)
 
+showType :: Type -> Printer ()
+showType TyBool = tell $ show TyBool
+showType TyNat = tell $ show TyNat
+showType (TyArr t1 t2) = tell $ show (TyArr t1 t2)
+
+showTypeOfTerm :: Term -> Type -> Printer ()
+showTypeOfTerm _ ty = showType ty
+
 showTerms :: Term -> ThrowsError String
 showTerms trm = runPrinter $ shwTrm trm
     where shwTrm t = do
           tell "-- Term: --\n"
           showTerm t
 
-showTypes :: Type -> ThrowsError String
-showTypes ty = runPrinter $ shwTy ty
-    where shwTy t = do
-          tell "-- Type: --\n"
-          tell $ show t
+showResults :: [Term] -> [Type] -> [Term] -> ThrowsError String
+showResults ts tys nfs = do
+    runPrinter . mapM_ showLine $ zip3 ts tys nfs
+        where showLine (t,ty,nf) = do origCtx <- get
+                                      tell "-- Term: --\n"
+                                      showTerm t
+                                      tell "\n-- Type: --\n"
+                                      withContext origCtx $ showTypeOfTerm t ty
+                                      tell "\n-- Normal Form: --\n"
+                                      tell $ show nf
+                                      tell "\n"

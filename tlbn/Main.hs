@@ -10,12 +10,13 @@ import qualified TLBNShow
 parseAndEval :: String -> TLBNError.ThrowsError String
 parseAndEval progStr = do
     term <- Parser.parseTLBN progStr
-    TLBNShow.showTerms term
---    typ  <- Typing.termType term
---    TLBNShow.showTypes typ
+    typ  <- Typing.termType term
+    nf <- Evaluator.evalTerms term
+    TLBNShow.showResults [term] [typ] [nf]
 
 parseEvalAndPrint :: String -> IO ()
-parseEvalAndPrint = putStrLn . TLBNError.runThrows . parseAndEval
+parseEvalAndPrint = do
+    putStrLn . TLBNError.runThrows . parseAndEval
 
 -- main
 main :: IO ()
