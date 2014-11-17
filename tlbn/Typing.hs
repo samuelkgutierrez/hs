@@ -1,4 +1,4 @@
-module Typing (termType) where
+module Typing (termType, termType') where
 
 import TLBNError
 import TLBN
@@ -62,6 +62,9 @@ typeof (TrmVar idx _) = do
 
 termType :: Term -> ThrowsError Type
 termType  = runContextThrows . typeof
+
+termType' :: Monad m => Term -> m Type
+termType' ty = return $ extractValue $ runContextThrows $ typeof ty
 
 subtype :: Type -> Type -> Bool
 subtype = (==)

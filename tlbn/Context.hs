@@ -54,15 +54,18 @@ runContextThrows action = evalState (runErrorT action) newContext
 nameOf :: Int -> Context -> ThrowsError String
 nameOf idx = (liftM fst) . (bindingPairOf idx)
 
-withBinding var b action = do ctx <- get
-                              put $ appendBinding var b ctx
-                              result <- action
-                              put ctx
-                              return result
+withBinding var b action = do
+    ctx <- get
+    put $ appendBinding var b ctx
+    result <- action
+    put ctx
+    return result
 
 -- allows the caller to temporarily use an old context
-withContext ctx action = do origCtx <- get
-                            put ctx
-                            result <- action
-                            put origCtx
-                            return result
+withContext :: MonadState s m => s -> m b -> m b
+withContext ctx action = do
+    origCtx <- get
+    put ctx
+    result <- action
+    put origCtx
+    return result

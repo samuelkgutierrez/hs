@@ -8,10 +8,15 @@ import qualified Typing
 import qualified TLBNShow
 
 parseAndEval :: String -> TLBNError.ThrowsError String
+--parseAndEval progStr = do
+--    term <- Parser.parseTLBN progStr
+--    typ  <- Typing.termType term
+--    nf   <- Evaluator.evalTerm term
+--    TLBNShow.showResults [term] [typ] [nf]
 parseAndEval progStr = do
     term <- Parser.parseTLBN progStr
     typ  <- Typing.termType term
-    nf <- Evaluator.evalTerms term
+    nf   <- Evaluator.evalTerm term
     TLBNShow.showResults [term] [typ] [nf]
 
 parseEvalAndPrint :: String -> IO ()
@@ -35,9 +40,5 @@ main = do
     putStrLn ":: end input text"
     -- Start the parse.
     parseEvalAndPrint fileContents
-    -- Attempt to type the term. If successful, then the type will be returned.
-    -- Otherwise, a typing error will be raised and no further work will be
-    -- done.
-    --putStrLn "-- Normal Form: --"
     -- All done.
     return ()

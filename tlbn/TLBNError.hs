@@ -20,6 +20,7 @@ trapError :: Either TLBNError String -> Either TLBNError String
 trapError = (flip catchError) (return . show)
 
 extractValue :: ThrowsError a -> a
+extractValue (Left _) = error "Badness :-("
 extractValue (Right val) = val
 
 runThrows :: ThrowsError String -> String

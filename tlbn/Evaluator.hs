@@ -1,12 +1,10 @@
-module Evaluator (eval, evalTerms) where
+module Evaluator (evalTerm) where
 
 -- An implementation of an evaluator based on the small-step evaluation relation
 -- for the language of booleans \texttt{Bool} and natural numbers \texttt{Nat}
 -- that closely as possible follows the behavior presented in \texttt{TAPL}.
 
 import TLBN
-import TLBNError
-import Context
 import qualified Control.Monad as CMonad (liftM)
 import qualified Data.Maybe as DMaybe (fromMaybe)
 
@@ -72,4 +70,5 @@ eval :: Term -> Term
 eval t = let t' = DMaybe.fromMaybe t (eval1 t)
          in if t' == t then t else eval t'
 
-evalTerms ts = return (eval ts)
+evalTerm :: Monad m => Term -> m Term
+evalTerm ts = return (eval ts)
