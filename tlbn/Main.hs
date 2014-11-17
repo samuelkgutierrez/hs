@@ -1,9 +1,9 @@
 module Main (main) where
 
-import qualified TLBN
 import qualified BaseUtils
 import qualified Parser
 import qualified Evaluator
+import qualified Typing
 
 -- main
 main :: IO ()
@@ -29,7 +29,10 @@ main = do
     putStrLn "-- Term: --"
     print term
     putStrLn "-- Type: --"
-    print $ TLBN.typeof term
+    -- Attempt to type the term. If successful, then the type will be returned.
+    -- Otherwise, a typing error will be raised and no further work will be
+    -- done.
+    print $ Typing.typeof term
     putStrLn "-- Normal Form: --"
     -- If we are here, then everything has type checked, so print the normal
     -- form of the given term by evaluating it.

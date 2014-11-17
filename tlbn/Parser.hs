@@ -13,6 +13,12 @@ import Text.Parsec.Prim (ParsecT)
 import Data.Functor.Identity (Identity)
 import Data.Char (isUpper)
 
+throwsToParser :: (Show a1, Monad m) => Either a1 a -> m a
+throwsToParser action =
+    case action of
+      Left err  -> fail $ show err
+      Right val -> return val
+
 fullSimpleDef :: GenLanguageDef String u Identity
 fullSimpleDef = LanguageDef
                 { commentStart    = "/*"
@@ -116,12 +122,15 @@ parseIf = do
     reserved "fi"
     return (TrmIf t1 t2 t3)
 
-parseVar :: ParsecT String u Identity Term
+parseVar :: ParsecT String Context Identity Term
 parseVar = do
     varName <- identifier
     if isUpper $ head varName
       then fail "variables must start with a lowercase letter"
-      else return (TrmVar varName)
+      else do
+           context <- getState
+           idx <- throwsToParser $ indexOf varName context
+           return $ TrmVar idx (ctxLength context)
 
 parseVarBind :: ParsecT String Context Identity Term
 parseVarBind = do
@@ -185,3 +194,4 @@ parseTLBN srcStr =
     case runParser parseTerms newContext "TLBN Parser" srcStr of
       Left err   -> error (show err)
       Right term -> return term
+
