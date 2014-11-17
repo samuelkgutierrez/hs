@@ -122,7 +122,6 @@ parseIf = do
     reserved "fi"
     return (TrmIf t1 t2 t3)
 
-parseVar :: ParsecT String Context Identity Term
 parseVar = do
     varName <- identifier
     if isUpper $ head varName

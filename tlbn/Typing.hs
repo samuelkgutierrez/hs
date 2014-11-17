@@ -1,6 +1,11 @@
 module Typing (typeof) where
 
 import TLBN
+import Context
+
+import Control.Monad
+import Control.Monad.Error
+import Control.Monad.State
 
 -- Typing
 -- Convenience routine for printing out type error messages.
@@ -10,6 +15,10 @@ typeErrorComplain exTy gotTy =
                 ++ show exTy ++ "', but got '"
                 ++ show gotTy ++ "'.")
 
+retTypeFromBinding binding = case binding of
+    (VarBind ty) -> ty
+    _ -> error "Cannot return type from this binding."
+
 checkType :: Term -> Type -> Type -> Type
 checkType t exTy ouTy = do
     let typeOfT = typeof t
@@ -18,7 +27,6 @@ checkType t exTy ouTy = do
     else typeErrorComplain exTy typeOfT
 
 -- Implements the code responsible for calculating the type of a given term.
-typeof :: Term -> Type
 -- Typing for If statements.
 typeof (TrmIf c t e) = do
     let cTy = typeof c
@@ -30,7 +38,9 @@ typeof (TrmIf c t e) = do
          let tyE = checkType e tyT tyT
          -- If so, then just use the type of the else branch.
          tyE
+
 -- Typing for variables
+
 -- Typing for abstractions.
 
 -- The rest.

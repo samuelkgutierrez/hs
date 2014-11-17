@@ -17,9 +17,15 @@ newContext = Ctx []
 appendBinding :: String -> Binding -> Context -> Context
 appendBinding var binding (Ctx ps) = Ctx $ (var, binding) : ps
 
+bindingPairOf idx (Ctx ps) 
+    = if idx >= length ps
+      then throwError $ "at index " ++ show idx
+      else if idx < 0
+           then throwError "Negative index for context"
+           else return $ ps !! idx
+
 -- Returns the binding for a particular index in a context.
-bindingOf :: Int -> Context -> Binding
-bindingOf idx (Ctx ctx) = snd (ctx !! idx)
+bindingOf idx = (liftM snd) . (bindingPairOf idx)
 
 -- Returns the size of the context.
 ctxLength :: Context -> Int
