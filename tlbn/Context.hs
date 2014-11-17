@@ -50,3 +50,12 @@ indexOf var (Ctx ps) = iter 0 ps
 
 runContextThrows :: ContextThrowsError a -> ThrowsError a
 runContextThrows action = evalState (runErrorT action) newContext
+
+nameOf :: Int -> Context -> ThrowsError String
+nameOf idx = (liftM fst) . (bindingPairOf idx)
+
+withBinding var b action = do ctx <- get
+                              put $ appendBinding var b ctx
+                              result <- action
+                              put ctx
+                              return result

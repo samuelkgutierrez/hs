@@ -28,7 +28,8 @@ APP_NAME    := TLBN
 #LHS_SCRIPTS := $(wildcard *.lhs)
 TEX         := $(LHS_SCRIPTS:.lhs=.tex)
 
-GHC_FLAGS := -j2 -Wall
+#GHC_FLAGS := -j2 -Wall
+GHC_FLAGS := -j2
 
 #all: $(TARGET) $(TEX)
 all: $(TARGET)

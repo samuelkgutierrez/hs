@@ -1,7 +1,7 @@
 module TLBN where
 
 -- Terms
-data Term = TrmVar Int Int -- variable
+data Term = TrmVar Int String -- variable
           | TrmTru -- true
           | TrmFls -- false
           | TrmIf Term Term Term -- if t1 then t2 else t3 fi
@@ -34,7 +34,7 @@ instance Show Term where
         "if (" ++ show cond ++ ") then " ++ show thn ++ " else " ++ show el
     -- Shows variables.
     -- FIXME
-    show (TrmVar i ii) = show i ++ show ii
+    show (TrmVar _ n) = n
     -- Shows lamda abstraction terms.
     show (TrmAbs name typ body) =
         "abs (" ++ name ++ ":" ++ show typ ++ " . " ++ show body ++ ")"

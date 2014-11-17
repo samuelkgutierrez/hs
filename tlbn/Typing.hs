@@ -24,20 +24,44 @@ typeOfBinding :: Binding -> ContextThrowsError Type
 typeOfBinding (VarBind ty) = return ty
 typeOfBinding _ = throwError $ Default "Cannot determine type of binding"
 
--- Variable typing
 typeof :: Term -> ContextThrowsError Type
+typeof TrmTru = return TyBool
+typeof TrmFls = return TyBool
+typeof TrmZero = return TyNat
+typeof (TrmSucc t) = checkType t TyNat TyNat
+typeof (TrmPred t) = checkType t TyNat TyNat
+typeof (TrmIsZero t) = checkType t TyNat TyBool
+-- If statement typing
+typeof (TrmIf c t e) = do
+    tyC <- typeof c
+    if tyC /= TyBool
+    then typeErrorComplain TyBool tyC
+    else do
+        tyT <- typeof t
+        checkType e tyT tyT
+-- Type of bind term
+typeof (TrmBind _ binding) = typeOfBinding binding
+-- Function application typing
+typeof (TrmApp t1 t2) = do
+    tyT1 <- typeof t1
+    tyT2 <- typeof t2
+    case tyT1 of
+      (TyArr _ _) -> checkTyArr tyT1 tyT2
+      otherwise -> throwError $ Default "Abstraction expected."
+    where checkTyArr (TyArr tyArr1 tyArr2) tyT2
+              | subtype tyT2 tyArr1 = return tyArr2
+              | otherwise           = throwError $ Default ":-("
+-- Abstraction typing
+typeof (TrmAbs var ty body) =
+    withBinding var (VarBind ty) $ liftM (TyArr ty) $ typeof body
+-- Variable typing
 typeof (TrmVar idx _) = do
     ctx <- get
     b <- liftThrows $ bindingOf idx ctx
     typeOfBinding b
----- The rest.
-typeof trm = case trm of
-    TrmTru  -> return TyBool
-    TrmFls  -> return TyBool
-    TrmZero -> return TyNat
-    (TrmSucc t) -> checkType t TyNat TyNat
-    (TrmPred t) -> checkType t TyNat TyNat
-    (TrmIsZero t) -> checkType t TyNat TyBool
 
 termType :: Term -> ThrowsError Type
 termType  = runContextThrows . typeof
+
+subtype :: Type -> Type -> Bool
+subtype = (==)
