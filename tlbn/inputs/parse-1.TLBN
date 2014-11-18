@@ -1,0 +1,2 @@
+/* Bad term parse. We don't have 1-9, we just have 0, succ, and pred. */
+1
