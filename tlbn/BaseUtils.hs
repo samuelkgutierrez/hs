@@ -6,6 +6,8 @@ module BaseUtils
      getFileContents
     ) where
 
+-- Implements various utilities used in TLBN.
+
 import qualified System.Environment as SysEnv
 import qualified System.IO as SysIO
 import qualified System.Directory as SysDir

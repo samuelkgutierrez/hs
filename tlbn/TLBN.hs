@@ -1,5 +1,9 @@
 module TLBN where
 
+-- Describes the TLBN language and implements routines that show Terms, Types,
+-- and Bindings. Other helper routines are implemented here that facilitate
+-- these operations.
+
 -- Terms
 data Term = TrmVar Int String -- variable
           | TrmTru -- true
@@ -22,7 +26,7 @@ instance Show Term where
     show TrmFls = "False"
     -- Shows 0
     show TrmZero = "0"
-    -- Shows succ
+    -- Shows succ. For convenience, we show the decimal value if we are able.
     show (TrmSucc t) | isNumericValue t = show $ returnNumericValue (TrmSucc t)
                      | otherwise = "(succ " ++ show t ++ ")"
     -- Shows pred
@@ -33,7 +37,6 @@ instance Show Term where
     show (TrmIf cond thn el) =
         "if (" ++ show cond ++ ") then " ++ show thn ++ " else " ++ show el
     -- Shows variables.
-    -- FIXME
     show (TrmVar _ n) = n
     -- Shows lamda abstraction terms.
     show (TrmAbs name typ body) =
@@ -61,6 +64,8 @@ data Binding = TyVarBind
              | VarBind Type
                deriving (Show, Eq)
 
+-- Returns the decimal representation of a Term with Nat type. Errors if
+-- provided a term that cannot be converted into an Integer.
 returnNumericValue :: Term -> Integer
 returnNumericValue TrmZero = 0
 returnNumericValue (TrmSucc t) = returnNumericValue t + 1

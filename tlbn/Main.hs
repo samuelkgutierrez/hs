@@ -1,5 +1,7 @@
 module Main (main) where
 
+-- Implements main driver program.
+
 import qualified TLBNError
 import qualified BaseUtils
 import qualified Parser
@@ -7,21 +9,21 @@ import qualified Evaluator
 import qualified Typing
 import qualified TLBNShow
 
-parseAndEval :: String -> TLBNError.ThrowsError String
---parseAndEval progStr = do
---    term <- Parser.parseTLBN progStr
---    typ  <- Typing.termType term
---    nf   <- Evaluator.evalTerm term
---    TLBNShow.showResults [term] [typ] [nf]
-parseAndEval progStr = do
+-- Top-level call that invokes the parser, type checker, and evaluator. Passes
+-- along the results to a convenience function that prints the results or error
+-- string that is generated upon error.
+parseAndShowResults :: String -> TLBNError.ThrowsError String
+parseAndShowResults progStr = do
     term <- Parser.parseTLBN progStr
     typ  <- Typing.termType term
     nf   <- Evaluator.evalTerm term
     TLBNShow.showResults [term] [typ] [nf]
 
+-- Convenience function that takes a string of source code and passes it along
+-- to parseAndShowResults and has a convenient type for use in main.
 parseEvalAndPrint :: String -> IO ()
 parseEvalAndPrint = do
-    putStrLn . TLBNError.runThrows . parseAndEval
+    putStrLn . TLBNError.runThrows . parseAndShowResults
 
 -- main
 main :: IO ()
@@ -38,7 +40,7 @@ main = do
     putStrLn ":: begin input text"
     putStr fileContents
     putStrLn ":: end input text"
-    -- Start the parse.
+    -- Do the work.
     parseEvalAndPrint fileContents
     -- All done.
     return ()

@@ -70,5 +70,7 @@ eval :: Term -> Term
 eval t = let t' = DMaybe.fromMaybe t (eval1 t)
          in if t' == t then t else eval t'
 
+-- Term evaluation for use in monadic situations. Just a thin wrapper around
+-- eval.
 evalTerm :: Monad m => Term -> m Term
 evalTerm ts = return (eval ts)
