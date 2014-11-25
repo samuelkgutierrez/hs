@@ -14,7 +14,7 @@ data Term = TrmVar Int String -- variable
           | TrmTru -- true
           | TrmFls -- false
           | TrmIf Term Term Term -- if t1 then t2 else t3 fi
-          | TrmFix Term -- syntactic form for general recursion, fix T
+          | TrmFix Term -- fix T
           | TrmZero -- 0
           | TrmSucc Term -- succ T
           | TrmPred Term -- pred T
@@ -49,7 +49,10 @@ instance Show Term where
         "abs (" ++ name ++ ":" ++ show typ ++ " . " ++ show body ++ ")"
     -- Shows function application.
     show (TrmApp tFn tArg) =
-        "app (" ++ show tFn ++ " ,\n     " ++ show tArg ++ ")"
+        "app (" ++ show tFn ++ " ," ++ show tArg ++ ")"
+    -- Shows fix.
+    show (TrmFix t) =
+        "fix (" ++ show t ++ ")"
     -- Catch-all
     show _ = error "Don't know how to show given Term :-("
 

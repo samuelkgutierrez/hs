@@ -89,6 +89,28 @@ typeof (TrmVar idx _) = do
 \end{code}
 
 \noindent
+Fix typing. First get the type of fix's term. The typing relation dictates that
+the type of fix t will be $T_1$ if $t_1$ has type $(T_1 \rightarrow T_1)$
+\begin{code}
+typeof (TrmFix t) = do
+    -- First get the type of t. This needs to be an arrow type.
+    tyT <- typeof t
+    case tyT of
+        -- Good, this is an arrow type. Make sure that the types on either side
+        -- of the arrow are the same.
+        (TyArr ty1 ty2) -> if ty1 == ty2
+                           then return ty1 -- The same, so pick one.
+                           else error ("Type mismatch found in fix term. "
+                                       ++ "Type on either side of arrow aren't "
+                                       ++ "the same. Got '"
+                                       ++ show tyT ++ "'")
+        -- If not an arrow type, complain.
+        _               -> error ("Expected arrow type in fix, but got: '"
+                                  ++ show tyT ++ "'")
+
+\end{code}
+
+\noindent
 Top-level call that attempts to type a given Term.
 \begin{code}
 termType :: Term -> ThrowsError Type

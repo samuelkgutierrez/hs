@@ -192,7 +192,7 @@ parseTerm = parseTrue <|>
             parseFalse <|>
             parseSucc <|>
             parsePred <|>
-            try parseIsZero <|>
+            try parseIsZero <|> -- try because of if
             parseIf <|>
             parseFix <|>
             parseZero <|>
