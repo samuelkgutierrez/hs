@@ -1,6 +1,22 @@
-module Main (main) where
+\documentclass{article}
+%include polycode.fmt
 
--- Implements main driver program.
+\title{TLBN}
+\date{\today}
+\author{Samuel K. Gutierrez}
+\begin{document}
+\maketitle
+
+\noindent
+Haskell implementation of a type checker and an evaluator based on the small-step
+evaluation relation for the simply-typed call-by-value lambda-calculus with
+booleans and numbers.
+\\
+
+\noindent
+Implements main driver program for TLBN.
+\begin{code}
+module Main (main) where
 
 import qualified TLBNError
 import qualified BaseUtils
@@ -8,24 +24,33 @@ import qualified Parser
 import qualified Evaluator
 import qualified Typing
 import qualified TLBNShow
+\end{code}
 
--- Top-level call that invokes the parser, type checker, and evaluator. Passes
--- along the results to a convenience function that prints the results or error
--- string that is generated upon error.
+\noindent
+Top-level call that invokes the parser, type checker, and evaluator. Passes
+along the results to a convenience function that prints the results or error
+string that is generated upon error.
+\begin{code}
 parseAndShowResults :: String -> TLBNError.ThrowsError String
 parseAndShowResults progStr = do
     term <- Parser.parseTLBN progStr
     typ  <- Typing.termType term
     nf   <- Evaluator.evalTerm term
     TLBNShow.showResults [term] [typ] [nf]
+\end{code}
 
--- Convenience function that takes a string of source code and passes it along
--- to parseAndShowResults and has a convenient type for use in main.
+\noindent
+Convenience function that takes a string of source code and passes it along
+to parseAndShowResults and has a convenient type for use in main.
+\begin{code}
 parseEvalAndPrint :: String -> IO ()
 parseEvalAndPrint = do
     putStrLn . TLBNError.runThrows . parseAndShowResults
+\end{code}
 
--- main
+\noindent
+Main
+\begin{code}
 main :: IO ()
 main = do
     inputFileName <- BaseUtils.getInputFileName
@@ -44,3 +69,14 @@ main = do
     parseEvalAndPrint fileContents
     -- All done.
     return ()
+\end{code}
+\input TLBN
+\input BaseUtils
+\input Evaluator
+\input Typing
+\input Parser
+\input TLBNShow
+\input Context
+\input TLBNError
+\input testlog
+\end{document}

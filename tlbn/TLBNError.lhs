@@ -1,7 +1,11 @@
-module TLBNError where
+%include polycode.fmt
+\section{TLBNError}
 
--- Adapted from TAPL fullsimple error code.
--- Implements error routines for TLBN.
+\noindent
+Implements error routines for TLBN.  Adapted from TAPL fullsimple error code.
+
+\begin{code}
+module TLBNError where
 
 import Control.Monad.Except as CMonadEx
 import Control.Monad.Trans.Error
@@ -28,3 +32,4 @@ extractValue (Right val) = val
 
 runThrows :: ThrowsError String -> String
 runThrows action = extractValue $ trapError action
+\end{code}

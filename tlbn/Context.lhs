@@ -1,7 +1,12 @@
-module Context where
+%include polycode.fmt
+\section{Context}
 
--- Adapted from TAPL fullsimple context code.
--- Implements a simple context for the TLBN language.
+\noindent
+Implements a simple context for the TLBN language.  Adapted from TAPL fullsimple
+context code.
+
+\begin{code}
+module Context where
 
 import TLBNError
 import TLBN
@@ -32,9 +37,12 @@ appendBinding var binding (Ctx ps) = Ctx $ (var, binding) : ps
 -- Returns the binding for a particular index in a context.
 bindingOf :: Int -> Context -> ThrowsError Binding
 bindingOf idx = (liftM snd) . (bindingPairOf idx)
+\end{code}
 
--- Given an index and a context, returns the associated binding if one exists.
--- Otherwise, an error is thrown indicating that the variable isn't defined.
+\noindent
+Given an index and a context, returns the associated binding if one exists.
+Otherwise, an error is thrown indicating that the variable isn't defined.
+\begin{code}
 bindingPairOf :: Int -> Context -> ThrowsError (String, Binding)
 bindingPairOf idx (Ctx ps) 
     = if idx >= length ps
@@ -44,9 +52,12 @@ bindingPairOf idx (Ctx ps)
 liftThrows :: ThrowsError a -> ContextThrowsError a
 liftThrows (Left err)  = throwError err
 liftThrows (Right val) = return val
+\end{code}
 
--- Returns the variable ID of a particualr variable name. Throws an error if the
--- variable name is not found in the given context.
+\noindent
+Returns the variable ID of a particualr variable name. Throws an error if the
+variable name is not found in the given context.
+\begin{code}
 indexOf :: String -> Context -> ThrowsError Int
 indexOf var (Ctx ps) = iter 0 ps
     where iter _ [] = throwError $ Default ("Undefined variable: " ++ var)
@@ -55,8 +66,11 @@ indexOf var (Ctx ps) = iter 0 ps
 
 runContextThrows :: ContextThrowsError a -> ThrowsError a
 runContextThrows action = evalState (runErrorT action) newContext
+\end{code}
 
--- Returns the name of a variable when given a variable ID.
+\noindent
+Returns the name of a variable when given a variable ID.
+\begin{code}
 nameOf :: Int -> Context -> ThrowsError String
 nameOf idx = (liftM fst) . (bindingPairOf idx)
 
@@ -76,3 +90,4 @@ withContext ctx action = do
     result <- action
     put origCtx
     return result
+\end{code}

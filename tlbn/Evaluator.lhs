@@ -1,15 +1,24 @@
-module Evaluator (evalTerm) where
+%include polycode.fmt
+\section{Evaluator}
 
--- An implementation of an evaluator based on the small-step evaluation relation
--- for the language of booleans \texttt{Bool} and natural numbers \texttt{Nat}
--- that closely as possible follows the behavior presented in \texttt{TAPL}.
+\noindent
+An implementation of an evaluator based on the small-step evaluation relation
+for the language of booleans \texttt{Bool} and natural numbers \texttt{Nat} that
+closely as possible follows the behavior presented in \texttt{TAPL}.
+
+\begin{code}
+module Evaluator (evalTerm) where
 
 import TLBN
 import qualified Control.Monad as CMonad (liftM)
 import qualified Data.Maybe as DMaybe (fromMaybe)
 
--- Implements variable substitution for terms in our language. Helper routine
--- called by varSub.
+\end{code}
+
+\noindent
+Implements variable substitution for terms in our language. Helper routine
+called by varSub.
+\begin{code}
 doVarSub :: Term -> Term -> Term
 doVarSub body repl = case body of
     TrmTru        -> TrmTru
@@ -22,9 +31,12 @@ doVarSub body repl = case body of
     (TrmIf c t e) -> TrmIf (again c repl) (again t repl) (again e repl)
     _             -> error "Cannot perform variable substitution."
     where again = doVarSub
+\end{code}
 
--- Implements variable substitution within a lambda abstraction. Given an abs
--- and a term, returns a new term with
+\noindent
+Implements variable substitution within a lambda abstraction. Given an abs and a
+term, returns a new term with
+\begin{code}
 varSub :: Term -> Term -> Term
 varSub (TrmAbs _ _ body) repl = doVarSub body repl
 varSub _ _ = error "Invalid top-level call to varSub."
@@ -61,16 +73,22 @@ eval1 (TrmApp t1 t2) = term' where
      | otherwise  = CMonad.liftM (TrmApp t2) (eval1 t1)
 -- Signifies that the provided term is not in our language or is a normal form.
 eval1 _ = Nothing
+\end{code}
 
--- Implements a multi-step relation that iterates \texttt{eval1} as many times as
--- possible.  If t' == t then we know that we are either done or that we are stuck,
--- so just return t and don't call \texttt{eval} on t'. Else, we know that we've made
--- progress and can try to further evaluate one more time.
+\noindent
+Implements a multi-step relation that iterates \texttt{eval1} as many times as
+possible.  If t' == t then we know that we are either done or that we are stuck,
+so just return t and don't call \texttt{eval} on t'. Else, we know that we've
+made progress and can try to further evaluate one more time.
+\begin{code}
 eval :: Term -> Term
 eval t = let t' = DMaybe.fromMaybe t (eval1 t)
          in if t' == t then t else eval t'
+\end{code}
 
--- Term evaluation for use in monadic situations. Just a thin wrapper around
--- eval.
+\noindent
+Term evaluation for use in monadic situations. Just a thin wrapper around eval.
+\begin{code}
 evalTerm :: Monad m => Term -> m Term
 evalTerm ts = return (eval ts)
+\end{code}

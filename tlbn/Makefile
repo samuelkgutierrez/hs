@@ -20,13 +20,15 @@
 
 SHELL = /bin/bash
 
-.PHONY: all clean test
+.PHONY: all clean test doc
 .SUFFIXES: .lhs .o .tex
 
 TARGET      := Main
 APP_NAME    := TLBN
-#LHS_SCRIPTS := $(wildcard *.lhs)
+LHS_SCRIPTS := $(wildcard *.lhs)
 TEX         := $(LHS_SCRIPTS:.lhs=.tex)
+DOC_NAME    := tlbn.pdf
+TEST_LOG    := testlog.txt
 
 #GHC_FLAGS := -j2 -Wall
 GHC_FLAGS := -j2
@@ -39,13 +41,19 @@ $(TARGET):
 
 %.tex: %.lhs
 	@ \
-	echo "######################### building docs for $<" && \
-	lhs2TeX $< -o $@ && \
-	latexmk -pdf $@
+	echo "######################### building tex for $<" && \
+	lhs2TeX $< -o $@
+
+doc: $(TEX) $(TEST_LOG) 
+	latexmk -pdf Main.tex && \
+	mv Main.pdf $(DOC_NAME)
+
+$(TEST_LOG):
+	make test
 
 clean:
-	rm -f *.o *.hi $(APP_NAME) $(TEX) *.ptb
-	#latexmk -f -C $(TARGETS)
+	rm -f *.o *.hi $(APP_NAME) $(DOC_NAME) $(TEX) *.ptb *.aux *.log
+	latexmk -f -C Main.tex
 
 test: $(TARGET)
 	@ \

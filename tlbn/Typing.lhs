@@ -1,6 +1,11 @@
-module Typing (termType, termType') where
+%include polycode.fmt
+\section{Typing}
 
--- Implements typing routines for TLBN.
+\noindent
+Implements typing routines for TLBN.
+
+\begin{code}
+module Typing (termType, termType') where
 
 import TLBNError
 import TLBN
@@ -17,17 +22,23 @@ typeErrorComplain exTy gotTy =
     throwError $ Default ("Type error detected. Expected '"
                 ++ show exTy ++ "', but got '"
                 ++ show gotTy ++ "'.")
+\end{code}
 
--- Helper function that is used to check the type of a Term against an expected
--- type. Returns the expected return type if a typing error is not encountered.
+\noindent
+Helper function that is used to check the type of a Term against an expected
+type. Returns the expected return type if a typing error is not encountered.
+\begin{code}
 checkType :: Term -> Type -> b -> ErrorT TLBNError (State Context) b
 checkType t exTy ouTy = do
     typeOfT <- typeof t
     if exTy == typeOfT
     then return ouTy
     else typeErrorComplain exTy typeOfT
+\end{code}
 
--- Returns the type of a given Binding if an error is not encountered.
+\noindent
+Returns the type of a given Binding if an error is not encountered.
+\begin{code}
 typeOfBinding :: Binding -> ContextThrowsError Type
 typeOfBinding (VarBind ty) = return ty
 typeOfBinding _ = error "Cannot determine type of binding"
@@ -75,11 +86,15 @@ typeof (TrmVar idx _) = do
     ctx <- get
     b <- liftThrows $ bindingOf idx ctx
     typeOfBinding b
+\end{code}
 
--- Top-level call that attempts to type a given Term.
+\noindent
+Top-level call that attempts to type a given Term.
+\begin{code}
 termType :: Term -> ThrowsError Type
 termType  = runContextThrows . typeof
 
 -- An alternative implementation of termType with a different return type.
 termType' :: Term -> ThrowsError a -> a
 termType' ty = return extractValue $ runContextThrows $ typeof ty
+\end{code}

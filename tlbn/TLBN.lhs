@@ -1,8 +1,13 @@
-module TLBN where
+%include polycode.fmt
+\section{TLBN}
 
--- Describes the TLBN language and implements routines that show Terms, Types,
--- and Bindings. Other helper routines are implemented here that facilitate
--- these operations.
+\noindent
+Describes the TLBN language and implements routines that show Terms, Types, and
+Bindings. Other helper routines are implemented here that facilitate these
+operations.
+
+\begin{code}
+module TLBN where
 
 -- Terms
 data Term = TrmVar Int String -- variable
@@ -63,9 +68,11 @@ instance Show Type where
 data Binding = TyVarBind
              | VarBind Type
                deriving (Show, Eq)
-
--- Returns the decimal representation of a Term with Nat type. Errors if
--- provided a term that cannot be converted into an Integer.
+\end{code}
+\noindent
+Returns the decimal representation of a Term with Nat type. Errors if provided a
+term that cannot be converted into an Integer.
+\begin{code}
 returnNumericValue :: Term -> Integer
 returnNumericValue TrmZero = 0
 returnNumericValue (TrmSucc t) = returnNumericValue t + 1
@@ -94,3 +101,4 @@ isAbstractionValue trm = case trm of
 -- Retruns whether or not a given term is a value in our language.
 isValue :: Term -> Bool
 isValue t = isNumericValue t || isBooleanValue t || isAbstractionValue t
+\end{code}

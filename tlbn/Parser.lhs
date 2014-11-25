@@ -1,7 +1,12 @@
-module Parser (parseTLBN) where
+%include polycode.fmt
+\section{Parser}
 
--- Adapted from TAPL fullsimple parser code.
--- Parses a file containing expressions of the TLBN language.
+\noindent
+Parses a file containing expressions of the TLBN language.  Adapted from TAPL
+fullsimple parser code.
+
+\begin{code}
+module Parser (parseTLBN) where
 
 import TLBNError
 import TLBN
@@ -13,9 +18,12 @@ import Text.Parsec.Prim (ParsecT)
 import Control.Monad
 import Data.Functor.Identity (Identity)
 import Data.Char (isUpper)
+\end{code}
 
--- Helper routine that will either fail on error or return the value associated
--- with the action.
+\noindent
+Helper routine that will either fail on error or return the value associated
+with the action.
+\begin{code}
 throwsToParser :: (Show a1, Monad m) => Either a1 a -> m a
 throwsToParser action =
     case action of
@@ -191,12 +199,16 @@ parseTerms = do
     ts <- parseTerm
     eof
     return ts
+\end{code}
 
--- Top-level routine that is responsible for parsing the provided source text.
--- Terms will be returned or an error will be raised if the parse fails. Sets up
--- new empty context.
+\noindent
+Top-level routine that is responsible for parsing the provided source text.
+Terms will be returned or an error will be raised if the parse fails. Sets up
+new empty context.
+\begin{code}
 parseTLBN :: String -> ThrowsError Term
 parseTLBN srcStr =
     case runParser parseTerms newContext "TLBN Parser" srcStr of
       Left err   -> error (show err)
       Right term -> return term
+\end{code}

@@ -1,7 +1,12 @@
-module TLBNShow (showResults) where
+%include polycode.fmt
+\section{TLBNShow}
 
--- Implements showResults and helper routines for showing Terms and Types inside
--- of showResults.
+\noindent
+Implements showResults and helper routines for showing Terms and Types inside of
+showResults.
+
+\begin{code}
+module TLBNShow (showResults) where
 
 import TLBN
 import TLBNError
@@ -21,9 +26,12 @@ showVar idx = do
     ctx <- get
     name <- lift . liftThrows $ nameOf idx ctx
     tell name
+\end{code}
 
--- Shows Terms in a way that is convenient for use inside of showResults. Most
--- of the heavy lifting is done within show Term.
+\noindent
+Shows Terms in a way that is convenient for use inside of showResults. Most of
+the heavy lifting is done within show Term.
+\begin{code}
 showTerm :: Term -> Printer ()
 showTerm TrmTru = tell "true"
 showTerm TrmFls = tell "false"
@@ -36,15 +44,21 @@ showTerm (TrmVar i _) = showVar i
 showTerm (TrmAbs n t b) = tell $ show (TrmAbs n t b)
 showTerm (TrmApp f a) = tell $ show (TrmApp f a)
 showTerm _ = tell "Trm?"
+\end{code}
 
--- Shows type of provided Type that is convenient for use inside of showResults.
+\noindent
+Shows type of provided Type that is convenient for use inside of showResults.
+\begin{code}
 showType :: Type -> Printer ()
 showType TyBool = tell $ show TyBool
 showType TyNat = tell $ show TyNat
 showType (TyArr t1 t2) = tell $ show (TyArr t1 t2)
+\end{code}
 
--- Given an array of unevaluated terms, corresponding types, and normal forms,
--- prints out relavant information regarding the respective function arguments.
+\noindent
+Given an array of unevaluated terms, corresponding types, and normal forms,
+prints out relavant information regarding the respective function arguments.
+\begin{code}
 showResults :: [Term] -> [Type] -> [Term] -> ThrowsError String
 showResults ts tys nfs = do
     runPrinter . mapM_ showLine $ zip3 ts tys nfs
@@ -57,3 +71,4 @@ showResults ts tys nfs = do
               tell "\n-- Normal Form: --\n"
               tell $ show nf
               tell "\n"
+\end{code}
