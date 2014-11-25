@@ -51,7 +51,8 @@ tlbnLangDef = LanguageDef
                                    "pred",
                                    "iszero",
                                    "app",
-                                   "abs"
+                                   "abs",
+                                   "fix"
                                   ]
               }
 
@@ -120,7 +121,14 @@ parsePred = parseOneArg "pred" TrmPred
 parseIsZero :: ParsecT String Context Identity Term
 parseIsZero = parseOneArg "iszero" TrmIsZero
 
--- Parses if statements of the form: If t then t else t fi.
+-- Parses syntactic form for general recursion, fix
+parseFix :: ParsecT String Context Identity Term
+parseFix = do
+    reserved "fix"
+    t <- parseTerm
+    return (TrmFix t)
+
+-- Parses ifs of the form: If t then t else t fi.
 parseIf :: ParsecT String Context Identity Term
 parseIf = do
     reserved "if"
@@ -186,6 +194,7 @@ parseTerm = parseTrue <|>
             parsePred <|>
             try parseIsZero <|>
             parseIf <|>
+            parseFix <|>
             parseZero <|>
             parseApp <|>
             parseAbs <|>

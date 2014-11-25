@@ -14,6 +14,7 @@ data Term = TrmVar Int String -- variable
           | TrmTru -- true
           | TrmFls -- false
           | TrmIf Term Term Term -- if t1 then t2 else t3 fi
+          | TrmFix Term -- syntactic form for general recursion, fix T
           | TrmZero -- 0
           | TrmSucc Term -- succ T
           | TrmPred Term -- pred T
@@ -38,7 +39,7 @@ instance Show Term where
     show (TrmPred t) = "(pred " ++ show t ++ ")"
     -- Shows iszero
     show (TrmIsZero t) = "(iszero " ++ show t ++ ")"
-    -- Show if statements
+    -- Show if
     show (TrmIf cond thn el) =
         "if (" ++ show cond ++ ") then " ++ show thn ++ " else " ++ show el
     -- Shows variables.

@@ -51,7 +51,7 @@ typeof TrmZero = return TyNat
 typeof (TrmSucc t) = checkType t TyNat TyNat
 typeof (TrmPred t) = checkType t TyNat TyNat
 typeof (TrmIsZero t) = checkType t TyNat TyBool
--- If statement typing
+-- If typing
 typeof (TrmIf c t e) = do
     tyC <- typeof c
     if tyC /= TyBool

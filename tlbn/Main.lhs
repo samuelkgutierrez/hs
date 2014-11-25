@@ -70,6 +70,7 @@ main = do
     -- All done.
     return ()
 \end{code}
+
 \input TLBN
 \input BaseUtils
 \input Evaluator
@@ -78,5 +79,5 @@ main = do
 \input TLBNShow
 \input Context
 \input TLBNError
-\input testlog
+\input testlog %Auto generated
 \end{document}
