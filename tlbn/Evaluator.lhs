@@ -12,41 +12,9 @@ module Evaluator (evalTerm) where
 import TLBN
 import qualified Control.Monad as CMonad (liftM)
 import qualified Data.Maybe as DMaybe (fromMaybe)
-
 \end{code}
 
-\noindent
-Implements variable substitution for terms in our language. Helper routine
-called by varSub.
 \begin{code}
-doVarSub :: Term -> Term -> Term
-doVarSub body repl = case body of
-    TrmTru         -> TrmTru
-    TrmFls         -> TrmFls
-    TrmZero        -> TrmZero
-    (TrmVar {})    -> repl
-    (TrmSucc t)    -> TrmSucc (again t repl)
-    (TrmPred t)    -> TrmPred (again t repl)
-    (TrmIsZero t)  -> TrmIsZero (again t repl)
-    (TrmIf c t e)  -> TrmIf (again c repl) (again t repl) (again e repl)
-    (TrmApp f a)   -> TrmApp f (again a repl)
-    (TrmFix t)     -> TrmFix (again t repl) 
-    pt@_           -> error ("Cannot perform variable substitution on: '"
-                             ++ show pt ++ "'")
-    where again = doVarSub
-\end{code}
-
-\noindent
-Implements variable substitution within a lambda abstraction. Given an abs and a
-term, returns a new term with
-\begin{code}
-
-varSub :: Term -> Term -> Term
-varSub (TrmAbs _ _ body) repl = doVarSub body repl
-varSub t1@_ t2@_ = error ("Invalid top-level call to varSub.\n"
-                          ++ "T1: '" ++ show t1 ++ "'\n"
-                          ++ "TR: '" ++ show t2 ++ "'")
-
 -- Implements a one step evaluation relation.
 eval1 :: Term -> Maybe Term
 -- Succ
@@ -65,9 +33,9 @@ eval1 (TrmIf TrmFls _ el) = Just el
 eval1 (TrmIf cond thn el) = CMonad.liftM (\x -> TrmIf x thn el) (eval1 cond)
 -- Application
 -- Application of abstraction
-eval1 (TrmApp t1@(TrmAbs {}) t2)
+eval1 (TrmApp t1@(TrmAbs _ _ body) t2)
     -- if t2 is a value, then just replace its value inside of t1's body
-    | isValue t2 = Just (varSub t1 t2)
+    | isValue t2 = Just $ apply t2 body 
     -- t2 is not a value, so eval1 t2
     | otherwise = CMonad.liftM (TrmApp t1) (eval1 t2)
 -- More general Application
@@ -80,11 +48,39 @@ eval1 (TrmFix t)
     | not $ isValue t = CMonad.liftM TrmFix (eval1 t)
 
 -- Implements E-FIXBETA. In this case, t is a lambda abstraction.
-eval1 (TrmFix t@(TrmAbs label typ body)) =
-    Just $ doVarSub body (TrmFix body)
-
+eval1 t@(TrmFix (TrmAbs _ _ body)) = Just $ apply t body
 -- Signifies that the provided term is not in our language or is a normal form.
 eval1 _ = Nothing
+
+walk c t f = case t of
+               TrmVar _ _ -> f c t
+               TrmAbs var ty body -> TrmAbs var (walkType c ty f)
+                                    (walk (c + 1) body f)
+               TrmApp t1 t2 -> TrmApp (walk c t1 f) (walk c t2 f)
+               TrmSucc t -> TrmSucc $ walk c t f
+               TrmPred t -> TrmPred $ walk c t f
+               TrmIsZero t -> TrmIsZero $ walk c t f
+               TrmIf t1 t2 t3 -> TrmIf (walk c t1 f) (walk c t2 f) (walk c t3 f)
+               TrmFix t -> TrmFix $ walk c t f
+               otherwise -> t
+
+walkType c ty f = case ty of
+                    TyVar v -> TyVar $ f c v
+                    TyArr ty1 ty2 -> TyArr (walkType c ty1 f)
+                                     (walkType c ty2 f)
+                    otherwise -> ty
+
+sub i val t = walk 0 t subVar
+    where subVar c v@(TrmVar idx _) | c + i == idx = shift c val
+                                   | otherwise    = v
+
+shift i t = walk 0 t shiftVar
+    where shiftVar c (TrmVar idx ctxLen)
+              | idx >= c  = TrmVar (idx + i) (ctxLen + i)
+              | otherwise = TrmVar idx (ctxLen + i)
+
+apply term body = shift (-1) $ sub 0 (shift 1 term) body
+
 \end{code}
 
 \noindent
