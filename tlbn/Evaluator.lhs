@@ -35,7 +35,7 @@ eval1 (TrmIf cond thn el) = CMonad.liftM (\x -> TrmIf x thn el) (eval1 cond)
 -- Application of abstraction
 eval1 (TrmApp t1@(TrmAbs _ _ body) t2)
     -- if t2 is a value, then just replace its value inside of t1's body
-    | isValue t2 = Just $ apply t2 body 
+    | isValue t2 = Just (tSub body t2)
     -- t2 is not a value, so eval1 t2
     | otherwise = CMonad.liftM (TrmApp t1) (eval1 t2)
 -- More general Application
@@ -46,23 +46,27 @@ eval1 (TrmApp t1 t2)
 -- Implements E-FIX. Simply eval1 t to get t' if t is not a \.
 eval1 (TrmFix t)
     | not $ isValue t = CMonad.liftM TrmFix (eval1 t)
-
 -- Implements E-FIXBETA. In this case, t is a lambda abstraction.
-eval1 t@(TrmFix (TrmAbs _ _ body)) = Just $ apply t body
+eval1 t@(TrmFix (TrmAbs _ _ body)) = Just (tSub body t)
 -- Signifies that the provided term is not in our language or is a normal form.
 eval1 _ = Nothing
 
-walk c t f = case t of
-               TrmVar _ _ -> f c t
-               TrmAbs var ty body -> TrmAbs var (walkType c ty f)
-                                    (walk (c + 1) body f)
-               TrmApp t1 t2 -> TrmApp (walk c t1 f) (walk c t2 f)
-               TrmSucc t -> TrmSucc $ walk c t f
-               TrmPred t -> TrmPred $ walk c t f
-               TrmIsZero t -> TrmIsZero $ walk c t f
-               TrmIf t1 t2 t3 -> TrmIf (walk c t1 f) (walk c t2 f) (walk c t3 f)
-               TrmFix t -> TrmFix $ walk c t f
-               otherwise -> t
+travTerm :: Num t => t -> Term -> (t -> Term -> Term) -> Term
+travTerm c t f = case t of
+    TrmSucc ts        -> TrmSucc   (continue ts)
+    TrmPred tp        -> TrmPred   (continue tp)
+    TrmIsZero tn      -> TrmIsZero (continue tn)
+    TrmFix tf         -> TrmFix    (continue tf)
+    TrmIf cnd thn els -> TrmIf     (continue cnd)
+                                   (continue thn)
+                                   (continue els)
+    TrmApp fn a       -> TrmApp    (continue fn)
+                                   (continue a)
+    TrmAbs var ty body -> TrmAbs var (walkType c ty f)
+                          (travTerm (c + 1) body f)
+    TrmVar {} -> f c t
+    _ -> t
+    where continue = (\tb -> travTerm c tb f)
 
 walkType c ty f = case ty of
                     TyVar v -> TyVar $ f c v
@@ -70,16 +74,18 @@ walkType c ty f = case ty of
                                      (walkType c ty2 f)
                     otherwise -> ty
 
-sub i val t = walk 0 t subVar
+sub i val t = travTerm 0 t subVar
     where subVar c v@(TrmVar idx _) | c + i == idx = shift c val
                                    | otherwise    = v
 
-shift i t = walk 0 t shiftVar
+shift i t = travTerm 0 t shiftVar
     where shiftVar c (TrmVar idx ctxLen)
               | idx >= c  = TrmVar (idx + i) (ctxLen + i)
               | otherwise = TrmVar idx (ctxLen + i)
 
-apply term body = shift (-1) $ sub 0 (shift 1 term) body
+-- Given a target body and a term that represents the
+tSub :: Term -> Term -> Term
+tSub body repl = shift (-1) $ sub 0 (shift 1 repl) body
 
 \end{code}
 
