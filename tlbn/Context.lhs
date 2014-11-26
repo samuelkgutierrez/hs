@@ -27,8 +27,8 @@ newContext :: Context
 newContext = Ctx []
 
 -- Returns the size of the context.
-ctxLength :: Context -> Int
-ctxLength (Ctx ps) = length ps
+contextLength :: Context -> Int
+contextLength (Ctx ps) = length ps
 
 -- Appends a binding to a context.
 appendBinding :: String -> Binding -> Context -> Context
@@ -90,4 +90,7 @@ withContext ctx action = do
     result <- action
     put origCtx
     return result
+
+bumpVar :: Int -> Term -> Term
+bumpVar bumpi (TrmVar n idx contextLen) = TrmVar n idx (contextLen + bumpi)
 \end{code}

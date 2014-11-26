@@ -10,7 +10,7 @@
 \noindent
 Haskell implementation of a type checker and an evaluator based on the small-step
 evaluation relation for the simply-typed call-by-value lambda-calculus with
-booleans and numbers.
+booleans, numbers, and general recursion.
 \\
 
 \noindent

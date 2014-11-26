@@ -40,7 +40,7 @@ showTerm (TrmSucc t) = tell $ show (TrmSucc t)
 showTerm (TrmPred t) = tell $ show (TrmPred t)
 showTerm (TrmIsZero t) = tell $ show (TrmIsZero t)
 showTerm (TrmIf c t e) = tell $ show (TrmIf c t e)
-showTerm (TrmVar i _) = showVar i
+showTerm (TrmVar _ i _) = showVar i
 showTerm (TrmAbs n t b) = tell $ show (TrmAbs n t b)
 showTerm (TrmApp f a) = tell $ show (TrmApp f a)
 showTerm (TrmFix t) = tell $ show (TrmFix t)
@@ -65,10 +65,9 @@ showResults ts tys nfs = do
     runPrinter . mapM_ showLine $ zip3 ts tys nfs
         where showLine (t,ty,nf) = do
               tell "-- Term: --\n"
-              showTerm t
-              origCtx <- get
+              tell $ show t
               tell "\n-- Type: --\n"
-              withContext origCtx $ showType ty
+              showType ty
               tell "\n-- Normal Form: --\n"
               tell $ show nf
               tell "\n"

@@ -4,18 +4,23 @@
 \noindent
 An implementation of an evaluator based on the small-step evaluation relation
 for the language of booleans \texttt{Bool} and natural numbers \texttt{Nat} that
-closely as possible follows the specified behavior. 
+closely as possible follows the specified behavior. Includes new syntactic form
+for general recursion, \texttt{fix}. Some code adapted from TAPL fullsimple
+example.
 
 \begin{code}
 module Evaluator (evalTerm) where
 
 import TLBN
+import Typing
+import Context
 import qualified Control.Monad as CMonad (liftM)
 import qualified Data.Maybe as DMaybe (fromMaybe)
 \end{code}
 
 \begin{code}
--- Implements a one step evaluation relation.
+-- Implements a one step evaluation relation. Using liftM to promote a
+-- function into a monad.
 eval1 :: Term -> Maybe Term
 -- Succ
 eval1 (TrmSucc t) = CMonad.liftM TrmSucc (eval1 t)
@@ -62,28 +67,20 @@ updateTerm c t f = case t of
                                    (continue els)
     TrmApp fn a       -> TrmApp    (continue fn)
                                    (continue a)
-    TrmAbs var ty body -> TrmAbs var (walkType c ty f)
-                          (updateTerm (c + 1) body f)
+    TrmAbs var ty body -> TrmAbs var (getType c ty f)
+                                     (updateTerm (c + 1) body f)
     TrmVar {} -> f c t
     _ -> t
     where continue = (\tb -> updateTerm c tb f)
 
-walkType c ty f = case ty of
-                    TyVar v -> TyVar $ f c v
-                    TyArr ty1 ty2 -> TyArr (walkType c ty1 f)
-                                     (walkType c ty2 f)
-                    otherwise -> ty
-
 sub i val t = updateTerm 0 t subVar
-    where subVar c v@(TrmVar idx _) | c + i == idx = shift c val
-                                   | otherwise    = v
+    where subVar c v@(TrmVar _ idx _) | c + i == idx = shift c val
+                                      | otherwise    = v
 
-shift i t = updateTerm 0 t shiftVar
-    where shiftVar c (TrmVar idx ctxLen)
-              | idx >= c  = TrmVar (idx + i) (ctxLen + i)
-              | otherwise = TrmVar idx (ctxLen + i)
+shift i t = updateTerm 0 t bumpVar
 
--- Given a target body and a term that represents the
+-- Given a target Term body and a replacement term, replace, where appropriate,
+-- the repl Term inside of the given Term body.
 tSub :: Term -> Term -> Term
 tSub body repl = shift (-1) $ sub 0 (shift 1 repl) body
 \end{code}

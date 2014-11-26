@@ -149,7 +149,7 @@ parseVar = do
       else do
            context <- getState
            idx <- throwsToParser $ indexOf varName context
-           return $ TrmVar idx (ctxLength context)
+           return $ TrmVar varName idx (contextLength context)
 
 -- Parses var : Type terms.
 parseVarBind :: ParsecT String Context Identity Term

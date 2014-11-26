@@ -5,7 +5,7 @@
 Implements typing routines for TLBN.
 
 \begin{code}
-module Typing (termType, termType') where
+module Typing (termType, termType', getType) where
 
 import TLBNError
 import TLBN
@@ -82,7 +82,7 @@ typeof (TrmApp t1 t2) = do
 typeof (TrmAbs var ty body) =
     withBinding var (VarBind ty) $ liftM (TyArr ty) $ typeof body
 -- Variable typing
-typeof (TrmVar idx _) = do
+typeof (TrmVar _ idx _) = do
     ctx <- get
     b <- liftThrows $ bindingOf idx ctx
     typeOfBinding b
@@ -108,6 +108,17 @@ typeof (TrmFix t) = do
         _               -> error ("Expected arrow type in fix, but got: '"
                                   ++ show tyT ++ "'")
 
+\end{code}
+
+\noindent
+TODO
+\begin{code}
+getType :: t -> Type -> (t -> Term -> Term) -> Type
+getType c ty f = case ty of
+    TyArr ty1 ty2 -> TyArr (getType c ty1 f)
+                     (getType c ty2 f)
+    TyVar v -> TyVar $ f c v
+    _ -> ty
 \end{code}
 
 \noindent
