@@ -105,4 +105,5 @@ isAbstractionValue trm = case trm of
 -- Retruns whether or not a given term is a value in our language.
 isValue :: Term -> Bool
 isValue t = isNumericValue t || isBooleanValue t || isAbstractionValue t
+
 \end{code}

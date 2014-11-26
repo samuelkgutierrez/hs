@@ -21,15 +21,18 @@ called by varSub.
 \begin{code}
 doVarSub :: Term -> Term -> Term
 doVarSub body repl = case body of
-    TrmTru        -> TrmTru
-    TrmFls        -> TrmFls
-    TrmZero       -> TrmZero
-    (TrmVar {})   -> repl
-    (TrmSucc t)   -> TrmSucc (again t repl)
-    (TrmPred t)   -> TrmPred (again t repl)
-    (TrmIsZero t) -> TrmIsZero (again t repl)
-    (TrmIf c t e) -> TrmIf (again c repl) (again t repl) (again e repl)
-    _             -> error "Cannot perform variable substitution."
+    TrmTru         -> TrmTru
+    TrmFls         -> TrmFls
+    TrmZero        -> TrmZero
+    (TrmVar {})    -> repl
+    (TrmSucc t)    -> TrmSucc (again t repl)
+    (TrmPred t)    -> TrmPred (again t repl)
+    (TrmIsZero t)  -> TrmIsZero (again t repl)
+    (TrmIf c t e)  -> TrmIf (again c repl) (again t repl) (again e repl)
+    (TrmApp f a)   -> TrmApp f (again a repl)
+    (TrmFix t)     -> TrmFix (again t repl) 
+    pt@_           -> error ("Cannot perform variable substitution on: '"
+                             ++ show pt ++ "'")
     where again = doVarSub
 \end{code}
 
@@ -37,9 +40,12 @@ doVarSub body repl = case body of
 Implements variable substitution within a lambda abstraction. Given an abs and a
 term, returns a new term with
 \begin{code}
+
 varSub :: Term -> Term -> Term
 varSub (TrmAbs _ _ body) repl = doVarSub body repl
-varSub _ _ = error "Invalid top-level call to varSub."
+varSub t1@_ t2@_ = error ("Invalid top-level call to varSub.\n"
+                          ++ "T1: '" ++ show t1 ++ "'\n"
+                          ++ "TR: '" ++ show t2 ++ "'")
 
 -- Implements a one step evaluation relation.
 eval1 :: Term -> Maybe Term
@@ -65,12 +71,18 @@ eval1 (TrmApp t1@(TrmAbs {}) t2)
     -- t2 is not a value, so eval1 t2
     | otherwise = CMonad.liftM (TrmApp t1) (eval1 t2)
 -- More general Application
-eval1 (TrmApp t1 t2) = term' where
-    term'
-     -- if t1 is a value, then eval1 t2
-     | isValue t1 = CMonad.liftM (TrmApp t1) (eval1 t2)
-     -- t1 isn't a value, so eval1 t1
-     | otherwise  = CMonad.liftM (TrmApp t2) (eval1 t1)
+eval1 (TrmApp t1 t2)
+     -- if t1 is not a value and not a lambda, then eval1 t1
+     | not $ isValue t1 = CMonad.liftM (`TrmApp` t2) (eval1 t1)
+-- Evaluation relations for fix.
+-- Implements E-FIX. Simply eval1 t to get t' if t is not a \.
+eval1 (TrmFix t)
+    | not $ isValue t = CMonad.liftM TrmFix (eval1 t)
+
+-- Implements E-FIXBETA. In this case, t is a lambda abstraction.
+eval1 (TrmFix t@(TrmAbs label typ body)) =
+    Just $ doVarSub body (TrmFix body)
+
 -- Signifies that the provided term is not in our language or is a normal form.
 eval1 _ = Nothing
 \end{code}

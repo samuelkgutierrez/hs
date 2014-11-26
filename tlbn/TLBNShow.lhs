@@ -43,6 +43,7 @@ showTerm (TrmIf c t e) = tell $ show (TrmIf c t e)
 showTerm (TrmVar i _) = showVar i
 showTerm (TrmAbs n t b) = tell $ show (TrmAbs n t b)
 showTerm (TrmApp f a) = tell $ show (TrmApp f a)
+showTerm (TrmFix t) = tell $ show (TrmFix t)
 showTerm _ = tell "Trm?"
 \end{code}
 
@@ -57,7 +58,7 @@ showType (TyArr t1 t2) = tell $ show (TyArr t1 t2)
 
 \noindent
 Given an array of unevaluated terms, corresponding types, and normal forms,
-prints out relavant information regarding the respective function arguments.
+prints out relevant information regarding the respective function arguments.
 \begin{code}
 showResults :: [Term] -> [Type] -> [Term] -> ThrowsError String
 showResults ts tys nfs = do

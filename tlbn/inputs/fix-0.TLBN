@@ -1,0 +1,13 @@
+app (
+    fix (
+        abs (f:(Nat -> Nat) .
+            abs (x:Nat .
+                if iszero x
+                   then 0
+                   else app (f, pred(x))
+                fi
+            )
+        )
+    ),
+    succ succ succ 0
+)
