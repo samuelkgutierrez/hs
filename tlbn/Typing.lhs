@@ -111,7 +111,7 @@ typeof (TrmFix t) = do
 \end{code}
 
 \noindent
-TODO
+Utility function for determining a type of a particular Term.
 \begin{code}
 getType :: t -> Type -> (t -> Term -> Term) -> Type
 getType c ty f = case ty of

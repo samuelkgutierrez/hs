@@ -67,7 +67,7 @@ showResults ts tys nfs = do
               tell "-- Term: --\n"
               tell $ show t
               tell "\n-- Type: --\n"
-              showType ty
+              tell $ show ty
               tell "\n-- Normal Form: --\n"
               tell $ show nf
               tell "\n"

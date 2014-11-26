@@ -56,8 +56,9 @@ eval1 t@(TrmFix (TrmAbs _ _ body)) = Just (tSub body t)
 -- Signifies that the provided term is not in our language or is a normal form.
 eval1 _ = Nothing
 
+-- Traverse the Term and perform any required Term rewrites.
 updateTerm :: Num t => t -> Term -> (t -> Term -> Term) -> Term
-updateTerm c t f = case t of
+updateTerm si t f = case t of
     TrmSucc ts        -> TrmSucc   (continue ts)
     TrmPred tp        -> TrmPred   (continue tp)
     TrmIsZero tn      -> TrmIsZero (continue tn)
@@ -67,22 +68,28 @@ updateTerm c t f = case t of
                                    (continue els)
     TrmApp fn a       -> TrmApp    (continue fn)
                                    (continue a)
-    TrmAbs var ty body -> TrmAbs var (getType c ty f)
-                                     (updateTerm (c + 1) body f)
-    TrmVar {} -> f c t
+    TrmAbs var ty body -> TrmAbs var (getType si ty f)
+                                     -- +1 because we are entering a new scope
+                                     (updateTerm (si + 1) body f)
+    TrmVar {} -> f si t
     _ -> t
-    where continue = (\tb -> updateTerm c tb f)
+    where continue = (\tb -> updateTerm si tb f)
 
-sub i val t = updateTerm 0 t subVar
-    where subVar c v@(TrmVar _ idx _) | c + i == idx = shift c val
-                                      | otherwise    = v
-
-shift i t = updateTerm 0 t bumpVar
+-- Nice utility function for Term substutution. Most of the heavy lifting is
+-- done in updateTerm.
+doTermSub :: Int -> Term -> Term -> Term
+doTermSub i val t = updateTerm 0 t subVar
+    where subVar si v@(TrmVar _ vid _)
+           | si + i == vid = bump si val
+           | otherwise = v
+          bump _ t' = updateTerm 0 t' bumpVar
 
 -- Given a target Term body and a replacement term, replace, where appropriate,
 -- the repl Term inside of the given Term body.
 tSub :: Term -> Term -> Term
-tSub body repl = shift (-1) $ sub 0 (shift 1 repl) body
+tSub body repl = shift (-1) $ doTermSub 0 (shift 1 repl) body
+    where shift :: Int -> Term -> Term
+          shift _ t = updateTerm 0 t bumpVar
 \end{code}
 
 \noindent
