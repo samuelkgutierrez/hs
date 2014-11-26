@@ -4,7 +4,7 @@
 \noindent
 An implementation of an evaluator based on the small-step evaluation relation
 for the language of booleans \texttt{Bool} and natural numbers \texttt{Nat} that
-closely as possible follows the behavior presented in \texttt{TAPL}.
+closely as possible follows the specified behavior. 
 
 \begin{code}
 module Evaluator (evalTerm) where
@@ -43,7 +43,7 @@ eval1 (TrmApp t1 t2)
      -- if t1 is not a value and not a lambda, then eval1 t1
      | not $ isValue t1 = CMonad.liftM (`TrmApp` t2) (eval1 t1)
 -- Evaluation relations for fix.
--- Implements E-FIX. Simply eval1 t to get t' if t is not a \.
+-- Implements E-FIX. Simply eval1 t to get t' if t is not a lambda.
 eval1 (TrmFix t)
     | not $ isValue t = CMonad.liftM TrmFix (eval1 t)
 -- Implements E-FIXBETA. In this case, t is a lambda abstraction.
@@ -51,8 +51,8 @@ eval1 t@(TrmFix (TrmAbs _ _ body)) = Just (tSub body t)
 -- Signifies that the provided term is not in our language or is a normal form.
 eval1 _ = Nothing
 
-travTerm :: Num t => t -> Term -> (t -> Term -> Term) -> Term
-travTerm c t f = case t of
+updateTerm :: Num t => t -> Term -> (t -> Term -> Term) -> Term
+updateTerm c t f = case t of
     TrmSucc ts        -> TrmSucc   (continue ts)
     TrmPred tp        -> TrmPred   (continue tp)
     TrmIsZero tn      -> TrmIsZero (continue tn)
@@ -63,10 +63,10 @@ travTerm c t f = case t of
     TrmApp fn a       -> TrmApp    (continue fn)
                                    (continue a)
     TrmAbs var ty body -> TrmAbs var (walkType c ty f)
-                          (travTerm (c + 1) body f)
+                          (updateTerm (c + 1) body f)
     TrmVar {} -> f c t
     _ -> t
-    where continue = (\tb -> travTerm c tb f)
+    where continue = (\tb -> updateTerm c tb f)
 
 walkType c ty f = case ty of
                     TyVar v -> TyVar $ f c v
@@ -74,11 +74,11 @@ walkType c ty f = case ty of
                                      (walkType c ty2 f)
                     otherwise -> ty
 
-sub i val t = travTerm 0 t subVar
+sub i val t = updateTerm 0 t subVar
     where subVar c v@(TrmVar idx _) | c + i == idx = shift c val
                                    | otherwise    = v
 
-shift i t = travTerm 0 t shiftVar
+shift i t = updateTerm 0 t shiftVar
     where shiftVar c (TrmVar idx ctxLen)
               | idx >= c  = TrmVar (idx + i) (ctxLen + i)
               | otherwise = TrmVar idx (ctxLen + i)
@@ -86,7 +86,6 @@ shift i t = travTerm 0 t shiftVar
 -- Given a target body and a term that represents the
 tSub :: Term -> Term -> Term
 tSub body repl = shift (-1) $ sub 0 (shift 1 repl) body
-
 \end{code}
 
 \noindent
