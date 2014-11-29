@@ -1,0 +1,10 @@
+app (
+    fix (
+        abs (not: (Bool -> Bool) .
+            abs (x: Bool .
+                if x then false else true fi
+            )
+        )
+    )
+    , false
+)

@@ -1,0 +1,8 @@
+/* Applies a (Nat -> Nat) function to 1. */
+app (
+    abs(fn:(Nat -> Nat) .
+        app(fn, succ 0)
+    )
+    ,
+    abs(x:Nat . succ x)
+)

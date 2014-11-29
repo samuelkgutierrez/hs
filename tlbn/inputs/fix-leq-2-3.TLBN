@@ -1,18 +1,13 @@
 app (
-    fix (
-        abs (f:((Nat -> Nat) -> Bool) .
-            abs (x:(Nat -> Bool) .
-                abs (y:Nat .
-                    if iszero x
-                        then False
-                    else
-                        if iszero y
-                            then True
-                        else app (f, app (x, y))
-                        fi
-                    fi
+    abs (b:Nat .
+        app (
+            abs (a:Nat . if iszero a
+                            then true
+                            else abs (b:Nat . b
+                         fi
             )
+            , 0
         )
-    ),
-    succ succ succ 0
+    )
+    , 0
 )

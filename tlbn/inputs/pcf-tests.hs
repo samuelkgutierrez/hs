@@ -4,10 +4,10 @@
 iszero :: Int -> Bool
 iszero n = n == 0
 
-succ' :: (Int -> Int)
+succ' :: Int -> Int
 succ' n = n + 1
 
-pred' :: (Int -> Int)
+pred' :: Int -> Int
 pred' n = if n == 0 then n else n - 1
 
 leq :: Int -> Int -> Bool

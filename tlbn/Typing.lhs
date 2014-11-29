@@ -72,12 +72,11 @@ typeof (TrmApp t1 t2) = do
          t -> throwError $ Default ("For 1st argument in app -- Expected "
                                     ++ "'TyArr', but got '" ++ show t ++ "'.")
     -- Now make sure that the argument type is the same as the function expects.
-    where checkTyArr tArr tyT2 = case tArr of
-            (TyArr tyArr1 tyArr2) -> if tyT2 == tyArr1
-                                     then return tyArr2
-                                     else typeErrorComplain tyArr2 tyT2
-            -- Given our construction, this should never happen.
-            _                     -> error "Badness!"
+    where checkTyArr (TyArr tyArr1 tyArr2) tyT2
+              | tyT2 == tyArr1 = return tyArr2
+              | otherwise = error ("Bad app Type: Function expects argument of "
+                      ++ "type: '" ++ show tyArr1 ++ "', but "
+                      ++ "something of type: '" ++ show tyT2 ++"' was provided")
 -- Abstraction typing
 typeof (TrmAbs var ty body) =
     withBinding var (VarBind ty) $ liftM (TyArr ty) $ typeof body
