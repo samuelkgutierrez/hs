@@ -1,0 +1,19 @@
+/* Implementation of times 2 3 */
+app (app (app (
+    fix (
+        abs (times: (Nat -> (Nat -> (Nat -> Nat))) .
+            abs (a:Nat . abs (b:Nat . abs (c: Nat .
+                if iszero b then c
+                else app (app (app (times, a), pred b),
+                    app(app(fix(abs(plus:(Nat -> (Nat -> Nat)) .
+                    abs(a:Nat . abs (b:Nat . if iszero a then b
+                    else app (app (plus, pred a), succ b) fi))))
+                    , a) , c ))
+                fi
+    )))))
+    , succ (succ 0) /* a */
+    )
+    , succ (succ (succ 0)) /* b */
+    )
+    , 0 /* c */
+)

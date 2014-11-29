@@ -1,5 +1,5 @@
 -- A few simple tests for function implementation given some of the contraints
--- of the STLC.
+-- of the PCF.
 
 iszero :: Int -> Bool
 iszero n = n == 0

@@ -1,0 +1,22 @@
+/* Implementation of equal 5 5 */
+app (
+    app (
+        fix (
+            abs (equal: (Nat -> (Nat -> Bool)) .
+                abs (a:Nat .
+                    abs (b:Nat .
+                        if iszero a then
+                            if iszero b then
+                                true
+                            else false
+                            fi
+                            else app (app (equal, pred a), pred b)
+                        fi
+                    )
+                )
+            )
+        )
+        , succ succ succ succ succ 0 /* a */
+    )
+    , succ succ succ succ succ 0 /* b */
+)
