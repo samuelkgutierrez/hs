@@ -1,13 +1,22 @@
+/* Implementation of equal 2 3 */
 app (
-    fix (
-        abs (f:((Nat -> Nat) -> Bool) .
-            abs (x:Nat .
-                if iszero x
-                   then 0
-                   else app (f, pred(x))
-                fi
+    app (
+        fix (
+            abs (equal: (Nat -> (Nat -> Bool)) .
+                abs (a:Nat .
+                    abs (b:Nat .
+                        if iszero a then
+                            if iszero b then
+                                true
+                            else false
+                            fi
+                            else app (app (equal, pred a), pred b)
+                        fi
+                    )
+                )
             )
         )
-    ),
-    succ succ succ 0
+        , succ (succ 0) /* a */
+    )
+    , succ (succ (succ 0)) /* b */
 )

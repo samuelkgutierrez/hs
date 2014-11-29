@@ -1,4 +1,4 @@
-/* Implementation of leq 2 3 */
+/* Implementation of leq 3 2 */
 app (
     app (
         fix (
@@ -16,7 +16,7 @@ app (
                 )
             )
         )
-        , succ (succ 0) /* a */
+        , succ (succ (succ 0)) /* a */
     )
-    , succ (succ (succ 0)) /* b */
+    , succ (succ 0) /* b */
 )
