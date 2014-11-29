@@ -1,0 +1,36 @@
+/* Implementation of fact fact 3 */
+app (
+    abs (fact:(Nat -> Nat) .
+            app (fact, app(fact, succ succ succ 0))
+    )
+,
+fix (
+    abs (fact: (Nat -> Nat) .
+        abs (a:Nat .
+            if iszero a then succ 0
+            else 
+                /* mult */
+                app (app (app (
+                    fix (
+                        abs (times: (Nat -> (Nat -> (Nat -> Nat))) .
+                            abs (a:Nat . abs (b:Nat . abs (c: Nat .
+                                if iszero b then c
+                                else app (app (app (times, a), pred b),
+                                    app(app(fix(abs(plus:(Nat -> (Nat -> Nat)) .
+                                    abs(a:Nat . abs (b:Nat . if iszero a then b
+                                    else app (app (plus, pred a), succ b) fi))))
+                                    , a) , c ))
+                                fi
+                    )))))
+                    , a
+                    )
+                    , app (fact, pred a) 
+                    )
+                    , 0 /* c */
+                )
+                /* mult */
+            fi
+        )
+    )
+)
+)
