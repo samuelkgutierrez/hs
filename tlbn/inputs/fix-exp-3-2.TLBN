@@ -1,0 +1,35 @@
+/* Implementation of exp 3 2 */
+app (app (app (
+    fix (
+        abs (exp: (Nat -> (Nat -> (Nat -> Nat))) .
+            abs (a:Nat . abs (b:Nat . abs (c: Nat .
+                if iszero b then c
+                else app (app (app (exp, a), pred b),
+                    app (app (app (
+                        fix (
+                            abs (times: (Nat -> (Nat -> (Nat -> Nat))) .
+                                abs (a:Nat . abs (b:Nat . abs (c: Nat .
+                                    if iszero b then c
+                                    else app (app (app (times, a), pred b),
+                                        app(app(fix(abs(plus:(Nat -> (Nat -> Nat)) .
+                                        abs(a:Nat . abs (b:Nat . if iszero a then b
+                                        else app (app (plus, pred a), succ b) fi))))
+                                        , a) , c ))
+                                    fi
+                        )))))
+                        , a 
+                        )
+                        , c
+                        )
+                        , 0
+                    )
+                    )
+                fi
+    )))))
+    , succ (succ (succ 0)) /* b */
+    )
+    , succ (succ 0) /* a */
+    )
+    , succ 0 /* c */
+)
+
